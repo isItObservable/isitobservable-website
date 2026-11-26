@@ -9,7 +9,7 @@ topics:
   - kubernetes
   - observability
 image:
-  src: ~/assets/images/kedã.png
+  src: ~/assets/images/kedã.png
   title: What is Keda? with Zbyněk Roubalík
   alt: null
 youtube: https://www.youtube.com/watch?v=E_tkH5Gvn_g

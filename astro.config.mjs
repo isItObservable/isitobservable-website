@@ -1,6 +1,6 @@
 // @ts-check
-import { readFileSync } from 'node:fs';
-import { cp, readdir, stat, writeFile } from 'node:fs/promises';
+import { existsSync, readFileSync } from 'node:fs';
+import { copyFile, cp, readdir, stat, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'astro/config';
 import { rehypeHeadingIds, unified } from '@astrojs/markdown-remark';
@@ -86,7 +86,13 @@ export default defineConfig({
       name: 'original-images',
       hooks: {
         'astro:build:done': async ({ dir }) => {
-          await cp(fileURLToPath(new URL('./src/assets/images/', import.meta.url)), fileURLToPath(new URL('./assets/images/', dir)), { recursive: true });
+          const images = fileURLToPath(new URL('./assets/images/', dir));
+          await cp(fileURLToPath(new URL('./src/assets/images/', import.meta.url)), images, { recursive: true });
+          // Craft stored names like kedã.png decomposed (a + ˜), and the feed keeps those URLs. Git has them composed, and Linux
+          // tells the two apart, so a copy goes under the old name. macOS treats both as one file: nothing to copy there.
+          for (const name of await readdir(images)) {
+            if (name.normalize('NFD') !== name && !existsSync(images + name.normalize('NFD'))) await copyFile(images + name, images + name.normalize('NFD'));
+          }
           await folderIndexes(fileURLToPath(dir).replace(/\/$/, ''));
         },
       },

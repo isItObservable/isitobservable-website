@@ -116,7 +116,8 @@ turndown.addRule('listItem', {
 const escapeText = turndown.escape.bind(turndown);
 turndown.escape = (text: string) => escapeText(text).replace(/</g, '\\<');
 /** One way to point at an image, in frontmatter and body alike. */
-function imageRef(filename: string) { return `~/assets/images/${filename}`; }
+// Craft stores some names decomposed (e + ´). Git and Linux keep them composed (é), so references and files are NFC.
+function imageRef(filename: string) { return `~/assets/images/${filename.normalize('NFC')}`; }
 /** Images fill the column; a smaller display width (as set in the old editor) goes into the title: ![alt](src "width=200"). */
 const mdImage = (alt: string, filename: string, width?: number) => `![${alt.replace(/[[\]]/g, '\\$&')}](${imageRef(filename)}${width ? ` "width=${width}"` : ''})`;
 
@@ -419,7 +420,7 @@ await mkdir(IMAGES, { recursive: true });
 const sizes = new Map((await query<{ filename: string; size: number }>(`SELECT a.filename, a.size FROM assets a JOIN elements el ON el.id = a.id WHERE ${LIVE}`)).map((a) => [a.filename, a.size]));
 let downloaded = 0;
 for (const a of assets.values()) {
-  const file = join(IMAGES, a.filename);
+  const file = join(IMAGES, a.filename.normalize('NFC'));
   if ((await stat(file).catch(() => null))?.size === sizes.get(a.filename)) continue;
   const res = await fetch(`${LIVE_SITE}/assets/images/${encodeURIComponent(a.filename)}`);
   if (!res.ok) { console.warn(`! ${res.status} ${a.filename}`); continue; }

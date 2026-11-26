@@ -320,7 +320,7 @@ Cat //proc/kallsyms | grep tcp\_send
 
 And I’m getting a filtered list.
 
-![kernel functions filtered list](~/assets/images/Capture-d’écran-2024-10-22-095633.png)
+![kernel functions filtered list](~/assets/images/Capture-d’écran-2024-10-22-095633.png)
 
 Once I have the desired function, I need the function definition. These details are crucial for configuring your tracing policy and asking Tetragon to collect data from the function's output.
 
@@ -334,13 +334,13 @@ This is for a kernel function, but it would be a similar journey for a tracepoin
 
 sudo ls /sys/kernel/debug/tracing/events
 
-![kernel function for events](~/assets/images/Capture-d’écran-2024-10-22-095739.png)
+![kernel function for events](~/assets/images/Capture-d’écran-2024-10-22-095739.png)
 
 And find the category TCP:
 
 sudo ls /sys/kernel/debug/tracing/events/tcp
 
-![Capture décran 2024 10 22 095812](~/assets/images/Capture-d’écran-2024-10-22-095812.png)
+![Capture décran 2024 10 22 095812](~/assets/images/Capture-d’écran-2024-10-22-095812.png)
 
 Now, you can get the sub-event for the TCP category.
 

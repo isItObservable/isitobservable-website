@@ -191,7 +191,7 @@ To get profiles in Pyroscope, you'll need to deploy the Pyroscope agents, the ea
 
 In the end, the Pyroscope eBPF agent will be deployed as a Daemonset to deploy the eBPF probe on each node of your cluster. It will collect CPU time related to all the objects in this node and add tags related to your Kubernetes objects: pod, node, namespace, and Kubernetes labels like version, application name, etc.
 
-![Flame Graph Pyroscope eBPF CPU time per function](~/assets/images/Capture-d’écran-2023-01-04-113315_2023-01-10-115013_kxnw.png)
+![Flame Graph Pyroscope eBPF CPU time per function](~/assets/images/Capture-d’écran-2023-01-04-113315_2023-01-10-115013_kxnw.png)
 
 If you're looking for a specific application profile for your application code, you can also use one of the available agents of Pyroscope for GO, Nodejs, Python, etc.
 
@@ -255,7 +255,7 @@ In terms of the operator on the tags, FlameQL supports the following:
 
 - !~ a tag value must not regex-match the provided string.
 
-![FlameQL Graph CPU time per function](~/assets/images/Capture-d’écran-2022-12-21-155731.png)
+![FlameQL Graph CPU time per function](~/assets/images/Capture-d’écran-2022-12-21-155731.png)
 
 In the Pyroscope UI for continuous profiling, the tag explorer shows you the distribution of profiles on a given tag, the average latency, and the standard deviation.
 
@@ -263,11 +263,11 @@ In the Pyroscope UI for continuous profiling, the tag explorer shows you the dis
 
 The single view allows you to type a FlameQL to look precisely at a given profile. You also have the option to add annotations to mark a given profile.
 
-![FlameQL Graph CPU time per function](~/assets/images/Capture-d’écran-2022-12-21-155731_2025-03-14-132933_izxa.png)
+![FlameQL Graph CPU time per function](~/assets/images/Capture-d’écran-2022-12-21-155731_2025-03-14-132933_izxa.png)
 
 In the comparison view, you can compare two FlameQLs on two different timelines to compare the produced profile. For example, you can see an increase in CPU time:
 
-![FlameQL Graph CPU time per function comparison view](~/assets/images/Capture-d’écran-2022-12-21-155928.png)
+![FlameQL Graph CPU time per function comparison view](~/assets/images/Capture-d’écran-2022-12-21-155928.png)
 
 Pyroscope provides a couple of interactions with observability solutions, and it integrates well with OpenTelemetry.
 
@@ -333,7 +333,7 @@ Pyroscope also provides a feature currently available on the Pyroscope cloud: tr
 
 Where it will show us all the profiles generated linked to spans.
 
-![Pyroscope tracing exemplars heatmap](~/assets/images/Capture-d’écran-2022-12-21-183318.png)
+![Pyroscope tracing exemplars heatmap](~/assets/images/Capture-d’écran-2022-12-21-183318.png)
 
 ## Pyroscope metrics
 

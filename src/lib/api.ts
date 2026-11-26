@@ -21,7 +21,7 @@ const item = async (a: Article) => {
   const category = categories.find((c) => c.id === categoryId(a));
   const author = (await getEntry(a.data.author))!.data;
   const image = a.data.image ?? { src: FALLBACK_IMAGE, title: a.data.title, alt: null }; // Feed Me always expects an image
-  const file = image.src.split('/').pop()!;
+  const file = image.src.split('/').pop()!.normalize('NFD'); // Craft's form of names like kedã.png (see astro.config.mjs)
   return {
     id: a.data.craftId ?? null,
     slug: a.id.split('/').pop(),

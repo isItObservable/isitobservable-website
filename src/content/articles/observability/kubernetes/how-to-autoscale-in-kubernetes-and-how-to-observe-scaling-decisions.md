@@ -131,7 +131,7 @@ The Metrics Server is not meant for non-auto scaling purposes. For example, don'
 
 The metrics collected by the metric server can be viewed with the command kubectl top pods or kubectl top nodes (for a given namespace).
 
-![Metrics Server command kubectl top pods or kubectl top nodes](~/assets/images/Capture-d’écran-2022-06-29-140831.png)
+![Metrics Server command kubectl top pods or kubectl top nodes](~/assets/images/Capture-d’écran-2022-06-29-140831.png)
 
 These APIs are designed to serve different types of metrics:
 
