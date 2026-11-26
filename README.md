@@ -6,7 +6,7 @@ A static [Astro](https://astro.build) site. All content is Markdown and JSON in 
 
 ## Run it
 
-Needs Node 24 (see `.node-version`).
+Needs Node 24 (`.nvmrc`, `.node-version`).
 
 ```bash
 npm ci
