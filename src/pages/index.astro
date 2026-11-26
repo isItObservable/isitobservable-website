@@ -1,0 +1,75 @@
+---
+import { Image } from 'astro:assets';
+import Base from '~/layouts/Base.astro';
+import ArticleRow from '~/components/ArticleRow.astro';
+import TopicsCloud from '~/components/TopicsCloud.astro';
+import YouTubeTeaser from '~/components/YouTubeTeaser.astro';
+import { categoryId, categoryTitle, entryImage, entryUrl, fallbackImage, getArticles, getCategories, getPages, getTopics, topCategoryId, type Entry } from '~/lib/content';
+import { latestVideo } from '~/lib/youtube';
+import { YOUTUBE_CHANNEL_URL } from '~/lib/site';
+
+const articles = await getArticles();
+const latest = articles[0]!; // the newest article leads
+const latestImage = entryImage(latest);
+const video = await latestVideo();
+const topics = (await getTopics()).map((t) => t.data);
+
+// One row per top-level category, ordered by its newest entry.
+const categories = await getCategories();
+const rows = new Map<string, Entry[]>();
+for (const entry of [...articles, ...(await getPages())].sort((a, b) => b.data.date.getTime() - a.data.date.getTime())) {
+  const top = topCategoryId(entry);
+  if (top) rows.set(top, [...(rows.get(top) ?? []), entry]);
+}
+---
+<Base title="Home">
+  <div class="intro">
+    <div class="container inner">
+      <div class="latest">
+        <a href={entryUrl(latest)}>
+          <Image class="lead" src={latestImage.src} alt={latestImage.alt} widths={[800, 1200, 1600]} sizes="(min-width: 800px) 58vw, 100vw" loading="eager" fetchpriority="high" />
+        </a>
+        <span class="label">{await categoryTitle(categoryId(latest))}</span>
+        <h2>{latest.data.title}</h2>
+        <a class="button" href={entryUrl(latest)}>Read article</a>
+      </div>
+      <div class="side">
+        {video ? (
+          <>
+            <h3>Latest YouTube Video</h3>
+            <YouTubeTeaser href={video.url}><img src={video.thumbnail} alt="Latest YouTube Video" width="640" height="480" /></YouTubeTeaser>
+          </>
+        ) : (
+          <>
+            <h3>Our YouTube channel</h3>
+            <YouTubeTeaser href={YOUTUBE_CHANNEL_URL}><Image src={fallbackImage()} alt="" widths={[400, 800]} sizes="33vw" /></YouTubeTeaser>
+          </>
+        )}
+        <h3>Search by Topic</h3>
+        <TopicsCloud topics={topics} />
+      </div>
+    </div>
+  </div>
+
+  <div class="rows">
+    {[...rows].map(([id, entries]) => (
+      <ArticleRow title={categories.find((c) => c.id === id)!.data.title} link={`/${id}`} entries={entries} />
+    ))}
+  </div>
+</Base>
+
+<style>
+  .intro { padding: 3rem 0 4rem; background: var(--light-gray); }
+  @media (min-width: 800px) { .inner { display: flex; justify-content: space-between; } .latest { width: 58.333%; } .side { width: 33.333%; } }
+  .latest { margin-bottom: 2rem; }
+  @media (min-width: 800px) { .latest { margin-bottom: 0; } }
+  .lead { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; margin-bottom: 1.25rem; }
+  .latest .label { display: block; margin-bottom: 0.5rem; color: var(--primary); letter-spacing: normal; }
+  .latest h2 { line-height: 1.25; }
+  .latest .button { margin-top: 2rem; }
+  .side h3 { margin-bottom: 0.75rem; font-size: var(--step-2); }
+  .side :global(.teaser) { margin: 1.5rem 0 2rem; }
+  .rows { overflow: hidden; padding: 3.5rem 0 1.5rem; }
+  @media (min-width: 800px) { .rows { padding-top: 4.5rem; } }
+  .rows > :global(* + *) { margin-top: 2.5rem; }
+</style>

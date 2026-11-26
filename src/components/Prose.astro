@@ -1,0 +1,34 @@
+---
+// Styles for rendered Markdown (articles and pages).
+interface Props { class?: string }
+const { class: cls } = Astro.props;
+---
+<div class:list={['prose', cls]} data-pagefind-body><slot /></div>
+
+<style>
+  /* Section headings (h2, h3) get generous space: 2rem plus one line of the heading itself; minor ones 2rem */
+  .prose :global(:is(h2, h3, h4, h5, h6)) { position: relative; margin-top: 2rem; scroll-margin-top: 6rem; }
+  .prose :global(:is(h2, h3)) { margin-top: calc(2rem + 1lh); }
+  .prose :global(:is(h2, h3, h4, h5, h6) + *) { margin-top: 1rem; }
+  .prose :global(:is(h2, h3, h4, h5, h6) + :is(h2, h3)) { margin-top: calc(1rem + 1lh); }
+  .prose :global(:is(h2, h3, h4, h5, h6) + :is(pre, p:has(> a > img:not([style])))) { margin-top: 1.5rem; } /* code and image blocks keep a bit more */
+  /* "#" link to the heading, shown on hover and focus */
+  .prose :global(.anchor) { position: absolute; right: 100%; padding-right: 0.25em; color: var(--primary); text-decoration: none; opacity: 0; }
+  .prose :global(:is(h2, h3, h4, h5, h6):hover .anchor), .prose :global(.anchor:focus-visible) { opacity: 1; }
+  .prose :global(a:not(.anchor)) { color: var(--primary); text-decoration: underline; }
+  .prose :global(li > p) { margin-top: 0; }
+  .prose :global(code:not(pre code)) { padding: 0.125rem 0.5rem; border-radius: 0.25rem; background: var(--pink); font-family: var(--mono); font-size: var(--step-m1); }
+  .prose :global(pre) {
+    margin-top: 2.5rem; padding: 0.75rem 1rem; overflow: auto; border-radius: 0.25rem;
+    background: var(--black); color: var(--white); font-family: var(--mono); font-size: var(--step-m1); line-height: 2rem;
+  }
+  /* Shiki writes its colors as --shiki-dark variables (defaultColor: false); the background stays ours */
+  .prose :global(pre span) { color: var(--shiki-dark); }
+  .prose :global(li pre) { margin-top: 1rem; }
+  /* :where() keeps these below the heading rule above: an image right after a heading also gets 1rem */
+  .prose :global(:where(p:has(> a > img))) { margin-top: 2.5rem; margin-bottom: 0.5rem; }
+  .prose :global(:where(p:has(> a > img[style]))) { margin-top: 2rem; margin-bottom: 0; } /* images placed in the text at a set width */
+  .prose :global(img) { width: 100%; }
+  .prose :global(table) { margin-top: 2rem; border-collapse: collapse; }
+  .prose :global(td), .prose :global(th) { padding: 0.5rem 0.75rem; border: 1px solid var(--gray); }
+</style>

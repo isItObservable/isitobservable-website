@@ -1,0 +1,44 @@
+---
+import { Image } from 'astro:assets';
+import LogoDynatrace from '~/icons/logo-dynatrace.svg';
+import privacyChoices from '~/assets/ui/your-privacy-choices-white.png';
+import Social from './Social.astro';
+---
+<footer class="footer">
+  <div class="container grid">
+    <div class="main">
+      <h3>Understand. Observe. Decide.</h3>
+      <a class="dynatrace" href="https://www.dynatrace.com" target="_blank" rel="noopener"><LogoDynatrace aria-label="Powered by Dynatrace" role="img" /></a>
+      <div class="social-mobile"><Social variant="white" /></div>
+      <nav aria-label="Footer Navigation">
+        <div class="links">
+          <a href="https://www.dynatrace.com/company/trust-center/terms-of-use/" target="_blank" rel="noopener">Terms of Use</a>
+          <a href="https://www.dynatrace.com/company/trust-center/policies/" target="_blank" rel="noopener">Policies</a>
+          <a href="javascript:window.Optanon.ToggleInfoDisplay()">Cookies</a>
+          <a href="https://privacyportal.onetrust.com/webform/d7b8abfa-8364-4e1c-835b-bc0c7bf676d1/69f5aef1-c2e7-4463-96e2-fa1617b9f308" target="_blank" rel="noopener">
+            Your Privacy Choices <Image class="privacy" src={privacyChoices} alt="Privacy Choices Icon" width={32} />
+          </a>
+        </div>
+        <span>© {new Date().getFullYear()} <a href="https://www.dynatrace.com" target="_blank" rel="noopener">Dynatrace</a> LLC. All rights reserved.</span>
+      </nav>
+    </div>
+    <div class="social-desktop"><Social variant="white" /></div>
+  </div>
+</footer>
+
+<style>
+  .footer { margin-top: 2.5rem; padding-block: 4rem; background: var(--gradient-dark); color: var(--white); }
+  @media (min-width: 800px) { .footer { margin-top: 72px; } .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2rem; } .main { grid-column: span 9; } .social-desktop { grid-column: span 3; } }
+  .dynatrace :global(svg) { height: 1rem; width: auto; margin: 0.5rem 0 2rem; }
+  @media (min-width: 600px) { .dynatrace :global(svg) { height: 1.25rem; } }
+  @media (min-width: 800px) { .dynatrace :global(svg) { height: 1.5rem; margin: 1rem 0 4rem; } }
+  nav { display: flex; flex-direction: column; }
+  .links { display: flex; flex-direction: column; }
+  @media (min-width: 800px) { .links { flex-direction: row; gap: 2.5rem; } }
+  .links a, nav > span { font-size: var(--step-m1); line-height: 2rem; }
+  nav > span { margin-top: 1rem; }
+  .privacy { display: inline-block; max-width: 32px; vertical-align: middle; }
+  .social-mobile { margin-bottom: 2rem; }
+  .social-desktop { display: none; justify-content: flex-end; }
+  @media (min-width: 800px) { .social-mobile { display: none; } .social-desktop { display: flex; } }
+</style>

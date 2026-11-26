@@ -1,0 +1,27 @@
+---
+// Gradient hero of articles and pages: category label, headline (or title), subline.
+import ArrowLeft from '~/icons/arrow-left-white.svg';
+import { sublineToHtml } from '~/lib/subline';
+
+interface Props { label?: string; headline: string; subline?: string; back?: string }
+const { label, headline, subline, back } = Astro.props;
+---
+<div class="hero">
+  <div class="container inner">
+    {back && <a class="back" href={back} aria-label="Back to category"><ArrowLeft aria-hidden="true" /></a>}
+    <p class="label">{label}</p>
+    <h1>{headline}</h1>
+    {subline && <div class="subline" set:html={await sublineToHtml(subline)} />}
+  </div>
+</div>
+
+<style>
+  .hero { padding-block: 3rem; background: var(--gradient); color: var(--white); }
+  @media (min-width: 800px) { .hero { padding-block: 72px; } }
+  .back { display: block; width: fit-content; margin: 0 0 1.5rem -0.25rem; } /* optical: the arrow icon has inner padding */
+  .label { margin: 0; }
+  h1 { margin-top: 1rem; }
+  h1:last-child { margin-bottom: 2rem; } /* without subline the hero keeps its height */
+  .subline { margin-top: 2rem; font-size: var(--step-0); line-height: 1.77778; }
+  @media (min-width: 1200px) { .label, h1, .subline { width: 50%; } }
+</style>

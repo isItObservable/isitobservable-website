@@ -1,0 +1,116 @@
+---
+// Category and search page: dark sticky bar with title and filters, card grid, 12 per page.
+// Everything is rendered at build time; ~/scripts/listing.ts filters, paginates and (on search) asks Pagefind.
+import Card from './Card.astro';
+import Chevron from '~/icons/chevron-down-white.svg';
+import CloseWhite from '~/icons/close-white.svg';
+import FilterIcon from '~/icons/filter-white.svg';
+import { categoryId, entryUrl, getTopics, type Category, type Entry } from '~/lib/content';
+import { sublineToHtml } from '~/lib/subline';
+
+interface Props { title: string; subline?: string; entries: Entry[]; categories: Category[]; search?: boolean }
+const { title, subline, entries, categories, search = false } = Astro.props;
+
+const allTopics = await getTopics();
+const used = new Set(entries.flatMap((e) => e.data.topics.map((t) => t.id)));
+const topics = allTopics.filter((t) => used.has(t.id)); // only topics that occur in the listed entries
+---
+<div class="bar-wrap" data-listing data-search={search ? '' : undefined}>
+  <div class="bar">
+    <div class="container inner">
+      <div class="text">
+        <h1 data-listing-title>{title}</h1>
+        {subline && <div class="subline" set:html={await sublineToHtml(subline)} />}
+      </div>
+      <button class="toggle" aria-label="Open filter" aria-expanded="false" aria-controls="filters" data-filter-toggle>
+        <FilterIcon class="icon-open" aria-hidden="true" /><CloseWhite class="icon-close" aria-hidden="true" />
+      </button>
+      <div class="filters" id="filters" data-filters>
+        <button class="reset" type="button" hidden data-filter-reset>Reset filter<CloseWhite aria-hidden="true" /></button>
+        {categories.length > 0 && (
+          <details class="filter">
+            <summary>Categories<Chevron aria-hidden="true" /></summary>
+            <fieldset>
+              <legend class="visually-hidden">Categories</legend>
+              {categories.map((c) => <label><input type="checkbox" name="category" value={c.id} /><span>{c.data.title}</span></label>)}
+            </fieldset>
+          </details>
+        )}
+        {topics.length > 0 && (
+          <details class="filter">
+            <summary>Topics<Chevron aria-hidden="true" /></summary>
+            <fieldset>
+              <legend class="visually-hidden">Topics</legend>
+              {topics.map((t) => <label><input type="checkbox" name="topic" value={t.id} /><span>{t.data.title}</span></label>)}
+            </fieldset>
+          </details>
+        )}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <ul class="grid" data-listing-grid>
+    {entries.map((entry) => (
+      <li data-card data-url={entryUrl(entry)} data-category={categoryId(entry) ?? ''} data-topics={entry.data.topics.map((t) => t.id).join(',')}>
+        <Card entry={entry} variant="grid" />
+      </li>
+    ))}
+  </ul>
+  <p class="empty" hidden data-listing-empty>No articles found!</p>
+  <nav class="pages" aria-label="Pages" data-listing-pages></nav>
+</div>
+
+<script>
+  import '~/scripts/listing.ts';
+</script>
+
+<style>
+  .bar-wrap { position: sticky; top: 0; z-index: 20; }
+  @media (min-width: 1066px) { .bar-wrap { z-index: 10; } }
+  .bar { padding-block: 2rem; background: var(--gradient-dark); color: var(--white); }
+  .inner { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+  h1 { font-size: var(--step-4); line-height: 1.5; }
+  .subline :global(p) { margin: 0; }
+  .toggle { display: flex; align-self: center; width: 1.5rem; }
+  .toggle .icon-close, .toggle[aria-expanded='true'] .icon-open { display: none; }
+  .toggle[aria-expanded='true'] .icon-close { display: block; }
+
+  /* Mobile: filters fold out below the bar; desktop: dropdowns on the right */
+  .filters { display: none; position: absolute; top: 100%; left: 0; width: 100%; max-height: 70vh; overflow: auto; padding: 1.5rem 24px; background: var(--white); color: var(--black); box-shadow: var(--shadow); }
+  .filters.is-open { display: block; }
+  @media (min-width: 1066px) {
+    .toggle { display: none; }
+    .filters, .filters.is-open { position: static; display: flex; align-items: flex-start; gap: 1.5rem; width: auto; max-height: none; overflow: visible; margin-top: 0.625rem; padding: 0; background: none; color: inherit; box-shadow: none; }
+  }
+  .reset { display: flex; align-items: center; gap: 0.25rem; font-size: var(--step-m1); }
+  .reset:hover { opacity: 0.5; }
+  .reset[hidden] { display: none; }
+  .filter { position: relative; margin-top: 1rem; }
+  @media (min-width: 1066px) { .filter { margin: 0; } }
+  summary { position: relative; display: flex; min-width: 128px; padding: 0.25rem 2rem 0.25rem 0.75rem; border: 1px solid currentColor; border-radius: 0.25rem; font-size: var(--step-m1); line-height: 1.77778; cursor: pointer; list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  summary :global(svg) { position: absolute; top: 50%; right: 0.25rem; transform: translateY(-50%); transition: transform 0.2s; }
+  .filter[open] summary :global(svg) { transform: translateY(-50%) rotate(180deg); }
+  @media (min-width: 1066px) { .filter[open] summary { background: var(--white); color: var(--black); } .filter[open] summary :global(path[stroke]) { stroke: var(--black); } }
+  fieldset { border: 0; padding: 0.5rem 0 0; }
+  @media (min-width: 1066px) {
+    fieldset { position: absolute; right: 0; z-index: 10; min-width: 216px; margin-top: 0.5rem; padding: 0.5rem 1rem 1rem; background: var(--white); color: var(--black); box-shadow: var(--shadow); border-radius: 0.25rem; }
+  }
+  label { display: flex; align-items: center; gap: 0.75rem; min-height: 1.25rem; margin-top: 0.5rem; font-size: var(--step-m2); font-weight: 500; cursor: pointer; }
+  input { appearance: none; flex: none; width: 20px; height: 20px; border: 2px solid var(--black); border-radius: 0.25rem; cursor: pointer; }
+  input:checked { border-color: var(--primary); background: var(--primary) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m6 12 4 4 8-8" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>') center / 14px no-repeat; }
+
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem 0.5rem; margin: 1.5rem 0 0; list-style: none; }
+  @media (min-width: 800px) { .grid { grid-template-columns: repeat(4, 1fr); gap: 2rem; margin-top: 3rem; } }
+  .grid li { margin: 0; }
+  .grid li[hidden] { display: none; }
+  .empty { margin-top: 2.5rem; font-size: var(--step-1); }
+  @media (min-width: 800px) { .empty { margin-top: 72px; } }
+  .pages { display: flex; gap: 1.25rem; margin-top: 2.5rem; }
+  @media (min-width: 800px) { .pages { margin-top: 72px; } }
+  .pages :global(button) { display: flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; border-radius: 50%; background: var(--light-gray); }
+  @media (min-width: 800px) { .pages :global(button) { width: 3rem; height: 3rem; } }
+  .pages :global(button[aria-current='page']) { background: var(--primary); color: var(--white); }
+</style>

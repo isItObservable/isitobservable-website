@@ -1,0 +1,28 @@
+---
+import Facebook from '~/icons/facebook-blue.svg';
+import X from '~/icons/x-blue.svg';
+import Bluesky from '~/icons/bluesky-blue.svg';
+import Linkedin from '~/icons/linkedin-blue.svg';
+import Reddit from '~/icons/reddit-blue.svg';
+
+interface Props { url: string; class?: string }
+const { url, class: cls } = Astro.props;
+const u = encodeURIComponent(url);
+const LINKS = [
+  { name: 'Facebook', Icon: Facebook, href: `https://www.facebook.com/sharer/sharer.php?u=${u}` },
+  { name: 'X', Icon: X, href: `https://x.com/intent/tweet?url=${u}` },
+  { name: 'Bluesky', Icon: Bluesky, href: `https://bsky.app/intent/compose?text=${u}` },
+  { name: 'LinkedIn', Icon: Linkedin, href: `https://www.linkedin.com/shareArticle?mini=true&url=${u}` },
+  { name: 'Reddit', Icon: Reddit, href: `https://reddit.com/submit?url=${u}` },
+];
+---
+<ul class:list={['share', cls]}>
+  {LINKS.map(({ name, Icon, href }) => <li><a href={href} target="_blank" rel="noopener" aria-label={`Share on ${name}`}><Icon aria-hidden="true" /></a></li>)}
+</ul>
+
+<style>
+  .share { display: flex; justify-content: center; gap: 0.75rem; margin-top: 2.5rem; list-style: none; }
+  li { margin: 0; }
+  a { display: flex; align-items: center; justify-content: center; width: 2.5rem; height: 2.5rem; border: 2px solid var(--primary); border-radius: 50%; }
+  a :global(svg) { width: 1rem; height: 1rem; }
+</style>

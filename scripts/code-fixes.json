@@ -1,0 +1,394 @@
+{
+  "00554e9279364690": {
+    "lang": "text",
+    "code": "at=info method=GET path=/\nhost=mutelight.org\nfwd=\"123.443.21.212\"\nstatus=200 bytes=1653"
+  },
+  "00f3d0f39361691f": {
+    "lang": "yaml",
+    "code": "sources:\n  kubernetes_logs:\n    type: kubernetes_logs\ntransforms:\n  remap_logs:\n    type: remap\n    inputs:\n      - kubernetes_logs\n    source: |\n      .k8s.pod.name=del(.kubernetes.pod_name)\n      .k8s.namespace.name=del(.kubernetes.pod_namespace)\n      .k8s.container.name=del(.kubernetes.container_name)\n      .content=.message\n      .k8s.node.name=del(.kubernetes.pod_node_name)\n      structured=parse_regex!(.kubernetes.pod_owner,r'^(?P<workloadkind>\\w+)/(?P<workloadname>\\w+)')\n      . = merge(., structured)\n      .dt.kubernetes.workload.kind= downcase(to_string(.workloadkind))\n      .dt.kubernetes.workload.name= downcase(to_string(.workloadname))\n      fileparse=parse_regex!(.file,r'^.*\\/(?P<namespace>[^_]+)_(?P<pod_name>[^_]+)_(?P<uid>[a-f0-9\\-]{36})\\/(?P<container_name>[^\\._]+)\\/(?P<restart_count>\\d+)\\.log$')\n      .= merge(.,fileparse)\n      .k8s.pod.uid=.uid\n      .k8s.cluster.uid=\"$CLUSTERID\"\n      del(.workloadkind)\n      del(.workloadname)\n      del(.kubernetes)\n  throttle:\n    type: throttle\n    inputs:\n      - remap_logs\nsinks:\n  dynatrace_logs:\n    type: http\n    inputs:\n      - throttle\n    compression: none\n    batch:\n      max_events: 800\n    encoding:\n      codec: json\n    uri: $DT_ENDPOINT/api/v2/logs/ingest\n    method: post\n    request:\n      headers:\n        Authorization: \"Api-Token $DT_API_TOKEN\"\n        Content-type: \"application/json; charset=utf-8\""
+  },
+  "014b269c2d31d39f": {
+    "lang": "yaml",
+    "code": "apiVersion: apps/v1\nkind: StatefulSet\nmetadata:\n  name: teststatefulset\n  namespace: testns\nspec:\n  selector:\n    matchLabels:\n      app: dev\n  serviceName: test-pod\n  replicas: 2\n  template:\n    metadata:\n      labels:\n        app: dev\n    spec:\n      containers:\n        - name: test-statefulset\n          image: nginx\n          imagePullPolicy: Always\n          securityContext:\n            runAsUser: 1025\n            privileged: false\n            allowPrivilegeEscalation: true\n            capabilities:\n              drop:\n                - ALL\n              add:\n                - SUID"
+  },
+  "050d6c9a0e493dc0": {
+    "lang": "yaml",
+    "code": "apiVersion: cilium.io/v1alpha1\nkind: TracingPolicy\nmetadata:\n  name: \"tcp-recv-monitoring\"\nspec:\n  kprobes:\n    - call: \"tcp_sendmsg\"\n      syscall: false\n      args:\n        - index: 0\n          type: \"sock\"\n        - index: 1\n          type: \"size_t\"\n        - index: 2\n          type: \"char_buf\"\n          returnCopy: true\n      selectors:\n        - matchArgs:\n            - index: 0\n              operator: \"NotDAddr\"\n              values:\n                - \"127.0.0.1\""
+  },
+  "057bf4d49356a8f5": {
+    "lang": "yaml",
+    "code": "processors:\n  batch:\n  batch/2:\n    send_batch_size: 10000\n    timeout: 10s"
+  },
+  "0851a20d3ac77aa7": {
+    "lang": "yaml",
+    "code": "retryBudget:\n  retryRatio: 0.2\n  minRetriesPerSecond: 10\n  ttl: 10s"
+  },
+  "08935cb6160075fb": {
+    "lang": "text",
+    "code": "endpoint localhost:4317;\ninterval 5s;\nbatch_size 512;\nbatch_count 4;"
+  },
+  "091b6e59c0c75ab1": {
+    "lang": "text",
+    "code": "<labels>\n  label_name value\n</labels>"
+  },
+  "0e6428a3e2194f0a": {
+    "lang": "yaml",
+    "code": "- macro: access_file\n  condition: evt.type=open\n- rule: program_accesses_file\n  desc: track whenever a set of programs opens a file\n  condition: (access_file) and proc.name in (cat, ls)\n  output: a tracked program opened a file (user=%user.name command=%proc.cmdline file=%fd.name)\n  priority: INFO"
+  },
+  "11b2017ac103b281": {
+    "lang": "yaml",
+    "code": "processors:\n  logs:\n    - name: sql\n      query: \"SELECT k8s.cluster.name, k8s.namespace.name,k8s.pod.name,content FROM STREAM;\""
+  },
+  "12b11880ff2eb305": {
+    "lang": "text",
+    "code": "<labels>\n  Host ${hostname}\n</labels>"
+  },
+  "156388244c9d76ae": {
+    "lang": "yaml",
+    "code": "rule: a name for our rule\ndesc: a simple description\ncondition: >\n  evt.type = execve and\n  evt.dir = < and\n  container.id != host and\n  (proc.name = bash or\n  proc.name = ksh)\noutput: >\n  shell in a container\n  (user=%user.name container_id=%container.id container_name=%container.name\n  shell=%proc.name parent=%proc.pname cmdline=%proc.cmdline)\npriority: WARNING\ntags:"
+  },
+  "18fa068ed1f7b9fc": {
+    "lang": "sql",
+    "code": "SELECT\n  datname, 100 * blks_hit / (blks_hit + blks_read) as cache_hit_ratio\nFROM\n  pg_stat_database\nWHERE (\n  blks_hit + blks_read) > 0"
+  },
+  "1b21f830da1cf19a": {
+    "lang": "text",
+    "code": "violation[{\"msg\": msg, \"details\": {}}] {\n  # rule body\n}"
+  },
+  "1bfe1ac8c98a9ff3": {
+    "lang": "yaml",
+    "code": "syscalls:\n  matchSyscalls:\n    - syscall:\n        - syscallX\n        - syscallY\n      fromSource: # --> optional\n        - path: [absolute exectuable path]\n        - dir: [absolute directory path]\n          recursive: [true|false] # --> optional\n  matchPaths:\n    - path: [absolute directory path | absolute exectuable path]\n      recursive: [true|false] # --> optional\n    - syscall:\n        - syscallX\n        - syscallY\n      fromSource: # --> optional\n        - path: [absolute executable path]\n        - dir: [absolute directory path]\n          recursive: [true|false] # --> optional"
+  },
+  "1e34a98c2e31a51f": {
+    "lang": "yaml",
+    "code": "apiVersion: core.openfeature.dev/v1beta1\nkind: FeatureFlagSource\nmetadata:\n  name: feature-flag-source\nspec:\n  sources: # flag sources for the injected Flagd\n    - source: flags/sample-flags # Feature flag - namespace/name\n      provider: kubernetes # kubernetes flag source backed by Feature flag custom resource\n  port: 8080"
+  },
+  "29bd5008f5fb74b0": {
+    "lang": "yaml",
+    "code": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: apache-logs\n  labels:\n    app: apache-logs\n  annotations:\n    fluentbit.io/exclude: \"true\"\nspec:\n  containers:\n    - name: apache\n      image: eclipser/apache_logs"
+  },
+  "2eb6164206e6e42b": {
+    "lang": "yaml",
+    "code": "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: tetragon-config\n  namespace: tetragon\ndata:\n  debug: \"false\"\n  enable-k8s-api: \"true\"\n  enable-pod-info: \"false\"\n  enable-policy-filter: \"true\"\n  enable-process-cred: \"true\"\n  enable-process-ns: \"false\"\n  enable-tracing-policy-crd: \"true\"\n  export-allowlist: '{\"event_set\":[\"PROCESS_EXEC\", \"PROCESS_EXIT\", \"PROCESS_KPROBE\",\n    \"PROCESS_UPROBE\", \"PROCESS_TRACEPOINT\", \"PROCESS_LSM\"]}'\n  export-denylist: |-\n    {\"health_check\":true}\n    {\"namespace\":[\"\", \"cilium\", \"kube-system\",\"cert-manager\",\"dynatrace\"]}\n  export-file-compress: \"false\"\n  export-file-max-backups: \"5\"\n  export-file-max-size-mb: \"10\"\n  export-file-perm: \"600\"\n  export-filename: /var/run/cilium/tetragon/tetragon.log\n  export-rate-limit: \"-1\"\n  field-filters: |\n    {\"fields\":\"process.binary,process.arguments,process.cwd,process.pod.name,process.pod.container.name,process.pod.namespace,process.flags,process.tid,process.pod.workload_kind,parent.binary,parent.arguments,args,status,signal,message,policy_name,function_name,event,file.path\"}\n  gops-address: localhost:8118\n  health-server-address: :6789\n  health-server-interval: \"10\"\n  metrics-label-filter: namespace,workload,pod,binary\n  metrics-server: :2112\n  process-cache-size: \"65536\"\n  procfs: /procRoot\n  redaction-filters: \"\"\n  server-address: localhost:54321"
+  },
+  "2fa8b0ef51b0bf93": {
+    "lang": "yaml",
+    "code": "condition:\n  method: GET\n  pathRegex: /products/[^/]\nname: GET /products/{id}\ntimeout: 300ms"
+  },
+  "337a05688ee12b02": {
+    "lang": "text",
+    "code": "\"CAP_CHOWN\",\n\"CAP_DAC_OVERRIDE\",\n\"CAP_FSETID\",\n\"CAP_FOWNER\",\n\"CAP_MKNOD\",\n\"CAP_NET_RAW\",\n\"CAP_SETGID\",\n\"CAP_SETUID\",\n\"CAP_SETFCAP\",\n\"CAP_SETPCAP\",\n\"CAP_NET_BIND_SERVICE\",\n\"CAP_SYS_CHROOT\",\n\"CAP_KILL\",\n\"CAP_AUDIT_WRITE\","
+  },
+  "367c80a6ad5fae74": {
+    "lang": "yaml",
+    "code": "spec:\n  template:\n    spec:\n      requirements:\n        - key: kubernetes.io/arch\n          operator: In\n          values: [\"amd64\"]\n        - key: kubernetes.io/os\n          operator: In\n          values: [\"linux\"]\n        - key: karpenter.k8s.aws/instance-category\n          operator: In\n          values: [\"c\", \"m\", \"r\"]\n          minValues: 2\n        - key: karpenter.k8s.aws/instance-family\n          operator: In\n          values: [\"m5\",\"m5d\",\"c5\",\"c5d\",\"c4\",\"r4\"]\n          minValues: 3\n        - key: node.kubernetes.io/instance-type\n          operator: Exists\n          minValues: 10\n        - key: karpenter.k8s.aws/instance-generation\n          operator: Gt\n          values: [\"2\"]"
+  },
+  "38c89cc7c9310225": {
+    "lang": "yaml",
+    "code": "rule: test_rule\ndesc: test rule description\ncondition: evt.type = close\noutput: user=%user.name command=%proc.cmdline file=%fd.name\npriority: INFO\nenabled: false"
+  },
+  "3a1068069e7e8bec": {
+    "lang": "yaml",
+    "code": "apiVersion: opentelemetry.io/v1alpha1\nkind: Instrumentation\nmetadata:\n  name: my-instrumentation\nspec:\n  exporter:\n    endpoint: http://otel-collector:4317\n  propagators:\n    - tracecontext\n    - baggage\n    - b3\n  sampler:\n    type: parentbased_traceidratio\n    argument: \"0.25\"\n  nginx:\n    attrs:\n      - name: NginxModuleOtelMaxExportBatchSize\n        value: 1024\n      - name: NginxModuleServiceName\n        value: mywebserver"
+  },
+  "3daef5660315cb24": {
+    "lang": "yaml",
+    "code": "pipeline:\n  - type: file_input\n    path: /var/log/test.log\n  - type: regex_parser\n    regex: '^Time=(?P<timestamp_field>\\d{4}-\\d{2}-\\d{2}), Host=(?P<host>[^,]+), Type=(?P<type>.*)$'\n    timestamp:\n      parse_from: timestamp_field\n      layout_type: strptime\n      layout: '%Y-%m-%d'\n    severity:\n      parse_from: severity_field\n      mapping:\n        critical: 5xx\n        error: 4xx\n        info: 3xx\n        debug: 2xx"
+  },
+  "3f52cf4163687662": {
+    "lang": "text",
+    "code": "{ timestamp: \"\"\n  message: \"The actual log line"
+  },
+  "483aebf1bc902200": {
+    "lang": "yaml",
+    "code": "apiVersion: lifecycle.keptn.sh/v1alpha2\nkind: KeptnEvaluationDefinition\nmetadata:\n  name: pre-deploy-eval-ressources\nspec:\n  source: prometheus-provider\n  objectives:\n    - name: available cores\n      query: \"sum(node:node_num_cpu:sum ) - sum(kube_pod_container_resource_requests{resource='cpu'})\"\n      evaluationTarget: \">=2\""
+  },
+  "4964baef3949bd2b": {
+    "lang": "yaml",
+    "code": "apiVersion: lifecycle.keptn.sh/v1alpha2\nkind: KeptnTaskDefinition\nmetadata:\n  name: payment-check\nspec:\n  function:\n    httpRef:\n      url: https://raw.githubusercontent....\n    parameters:\n      map:\n        host: example-paymentservice"
+  },
+  "509ccc7c9e65721b": {
+    "lang": "yaml",
+    "code": "apiVersion: karpenter.k8s.aws/v1\nkind: EC2NodeClass\nspec:\n  amiSelectorTerms:\n    - alias: al2023@v20240807\n  kubelet:\n    maxPods: 42"
+  },
+  "526bbb50860a787f": {
+    "lang": "yaml",
+    "code": "apiVersion: lifecycle.keptn.sh/v1alpha2\nkind: KeptnEvaluationDefinition\nmetadata:\n  name: pre-deploy-eval-resources\nspec:\n  source: keptn-metric\n  objectives:\n    - name: keptnmetric-sample\n      evaluationTarget: \">=2\""
+  },
+  "53cadeb0a8845d10": {
+    "lang": "text",
+    "code": "split_clients \"$otel_trace_id\" $ratio_sampler {\n    10% on;\n    * off;\n}\nserver {\n    location / {\n        otel_trace $ratio_sampler;\n        otel_trace_context inject;\n        otel_service_name mynginx\n        otel_span_name <custom span name of nginx>\n    }"
+  },
+  "555f2eeea4d72ea1": {
+    "lang": "text",
+    "code": "<metric>\n  <labels>\n  </labels>\n</metric>"
+  },
+  "6193e41d49b046e5": {
+    "lang": "javascript",
+    "code": "if( featureIsEnabled(\"use-new-SR-algorithm\") ){\n  return enhancedSplineReticulation();\n}else{\n  return oldFashionedSplineReticulation();\n}"
+  },
+  "65473f7a0051bde8": {
+    "lang": "text",
+    "code": "Type @ prometheus\n<labels>\n</labels>"
+  },
+  "662f0b907a55b239": {
+    "lang": "yaml",
+    "code": "disruption:\n  consolidationPolicy: WhenEmptyOrUnderutilized\n  budgets:\n    - nodes: \"20%\"\n      reasons:\n        - \"Empty\"\n        - \"Drifted\"\n    - nodes: \"5\"\n    - nodes: \"0\"\n      schedule: \"@daily\"\n      duration: 10m\n      reasons:\n        - \"Underutilized\""
+  },
+  "6fefe87dd008e239": {
+    "lang": "yaml",
+    "code": "apiVersion: cilium.io/v1alpha1\nkind: TracingPolicy\nmetadata:\n  name: \"tracepoint-restransmit\"\nspec:\n  tracepoints:\n    - subsystem: \"tcp\"\n      event: \"tcp_retransmit_skb\"\n      args:\n        - index: 5\n          type: \"skb\"\n        - index: 6\n          type: \"sock\""
+  },
+  "70a981cd4883347f": {
+    "lang": "yaml",
+    "code": "service:\n  telemetry:\n    metrics:\n      readers:\n        - periodic:\n            interval: 5000\n            exporter:\n              otlp:\n                protocol: http/protobuf\n                endpoint: http://localhost:4318\n                headers:\n                  api-key: !!str 1234\n                insecure: true\n                temporality_preference: delta\n    traces:\n      processors:\n        - batch:\n            exporter:\n              otlp:\n                protocol: grpc/protobuf\n                endpoint: https://backend2:4317"
+  },
+  "710cbea4f174cc0e": {
+    "lang": "text",
+    "code": "Rule{\n  Statement1\n  Statement2\n  statemnet3\n}"
+  },
+  "719e4960cebe612d": {
+    "lang": "typescript",
+    "code": "// add a value to the invocation context\nconst context: EvaluationContext = {\n  myInvocationKey: 'myInvocationValue',\n};\nconst boolValue = await client.getBooleanValue('boolFlag', false, context);"
+  },
+  "72fb9adb53da509f": {
+    "lang": "text",
+    "code": "sum by (host) (\n  rate(\n    {job=\"mysql\"}\n      |= \"error\" != \"timeout\"\n      | json\n      | duration > 10s\n    [1m])\n)"
+  },
+  "7bb948c3ea24a1ee": {
+    "lang": "yaml",
+    "code": "apiVersion: constraints.gatekeeper.sh/v1beta1\nkind: K8sHttpsOnly\nmetadata:\n  name: ingress-https-only\nspec:\n  eforcementAction: deny\n  namespaceSelector:\n    machLabels:\n      policyenforcement : active\n  match:\n    kinds:\n      - apiGroups: [\"extensions\", \"networking.k8s.io\"]\n        kinds: [\"Ingress\"]"
+  },
+  "7c13e1066b7f932b": {
+    "lang": "yaml",
+    "code": "preDeploymentEvaluations:\n  - app-pre-deploy-eval-1\npreDeploymentTasks:\n  - app-check-network\npostDeploymentEvaluations:\n  - response-time-check\npostDeploymentTask:\n  - load-test"
+  },
+  "7c41cf6d99456468": {
+    "lang": "yaml",
+    "code": "file:\n  matchPaths:\n    - path: [absolute file path]\n      readOnly: [true|false] # --> optional\n      ownerOnly: [true|false] # --> optional\n      fromSource: # --> optional\n        - path: [absolute exectuable path]\n  matchDirectories:\n    - dir: [absolute directory path]\n      recursive: [true|false] # --> optional\n      readOnly: [true|false] # --> optional\n      ownerOnly: [true|false] # --> optional\n      fromSource: # --> optional\n        - path: [absolute exectuable path]\n  matchPatterns:\n    - pattern: [regex pattern]\n      readOnly: [true|false] # --> optional\n      ownerOnly: [true|false]"
+  },
+  "8295b9978a073992": {
+    "lang": "yaml",
+    "code": "apiVersion: lifecycle.keptn.sh/v1alpha2\nkind: KeptnTaskDefinition\nmetadata:\n  name: kafka-check\nspec:\n  function:\n    httpRef:\n      url: https://raw.githubusercontent....\n    parameters:\n      map:\n        host: example-kafka"
+  },
+  "8357216c6c917efe": {
+    "lang": "yaml",
+    "code": "- list: my_programs\n  items: [ls, cat, pwd]\n- rule: my_programs_opened_file\n  desc: track whenever a set of programs opens a file\n  condition: proc.name in (my_programs) and (evt.type=open or evt.type=openat)\n  output: a tracked program opened a file (user=%user.name command=%proc.cmdline file=%fd.name)\n  priority: INFO"
+  },
+  "837563c309dbef3b": {
+    "lang": "yaml",
+    "code": "apiVersion: lifecycle.keptn.sh/v1alpha2\nkind: KeptnTaskDefinition\nmetadata:\n  name: deployment-hello\nspec:\n  function:\n    inline:\n      code: |\n        console.log(\"Deployment Task has been executed\");"
+  },
+  "8417b58d8d63d32c": {
+    "lang": "yaml",
+    "code": "annotations:\n  openfeature.dev/enabled: \"true\"\n  openfeature.dev/featureflagsource: \"featurefloagsoruce name ( in the same namesapce), or NAMSAPCE/name of the feature faltg source\""
+  },
+  "84d4d25229a33ac5": {
+    "lang": "yaml",
+    "code": "apiVersion: bindplane.observiq.com/v1\nkind: DestinationType\nmetadata:\n  name: otlp_dynatrace\n  displayName: OpenTelemetry Dyantrace (OTLP http)\n  icon: /icons/destinations/dynatrace.svg\n  description: Send traces to dynatrace endpoint.\nspec:\n  parameters:\n    - name: dynatrace_endpoint\n      label: Dynatrace url\n      description: Dynatradce url ( example https://dded.live.dynatrace.co...) .\n      type: string\n      default: \"\"\n      required: true\n    - name: apitoken\n      label: Access Token\n      description: Access Token that is restricted to 'OpenTelemetry Trace inges' scope. Required if Endpoint is specified\n      type: string\n      required: true\n      default: \"\"\n      documentation:\n        - text: Read more\n          url: https://docs.dynatrace.com/docs/ingest-from/opentelemetry/getting-started/otlp-export"
+  },
+  "85c3eec802202e62": {
+    "lang": "text",
+    "code": "quantile_over_time(0.99,\n  {cluster=\"ops-tools1\",container=\"ingress-nginx\"}\n    | json\n    | __error__ = \"\"\n    | unwrap request_time [1m])) by (path)"
+  },
+  "884ac284b3b79737": {
+    "lang": "text",
+    "code": "{\n  Name :\n  Tags: { all the labels of a given metric)\n  The type of metric counter, gauge, histograms: { value}\n  timestamp\n}"
+  },
+  "8b26348b2411925a": {
+    "lang": "yaml",
+    "code": "export-denylist: |-\n  {\"health_check\":true}\n  {\"namespace\":[\"\", \"cilium\", \"kube-system\",\"cert-manager\",\"dynatrace\"]}"
+  },
+  "95ded2ffde3b2523": {
+    "lang": "yaml",
+    "code": "telemetry:\n  metrics:\n    address: ${MY_POD_IP}:8888"
+  },
+  "96c72bfef329f674": {
+    "lang": "yaml",
+    "code": "apiVersion: opentelemetry.io/v1alpha1\nkind: Instrumentation\nmetadata:\n  name: my-instrumentation\nnginx:\n  image: your-customized-auto-instrumentation-image:nginx # if custom instrumentation image is needed\n  configFile: /my/custom-dir/custom-nginx.conf\n  attrs:\n    - name: NginxModuleOtelMaxQueueSize\n      value: \"4096\"\n    - name:\n      value:"
+  },
+  "97422a262cad1224": {
+    "lang": "yaml",
+    "code": "- condition:\n    method: GET\n    pathRegex: /products/[^/]\n  name: GET /products/{id}\n  isRetryable: true"
+  },
+  "9faa405e0b736c03": {
+    "lang": "text",
+    "code": "process:\n  matchPaths:\n    - path: [absolute executable path]\n      ownerOnly: [true|false] # --> optional\n      fromSource: # --> optional\n        - path: [absolute exectuable path]\n  matchDirectories:\n    - dir: [absolute directory path]\n      recursive: [true|false] # --> optional\n      ownerOnly: [true|false] # --> optional\n      fromSource: # --> optional\n        - path: [absolute exectuable path]\n  matchPatterns:\n    - pattern: [regex pattern]\n      ownerOnly: [true|false] # --> optional\n  # --> optional\n  action: [Allow|Audit|Block] (Block by default)"
+  },
+  "a17fb1dfefe805f7": {
+    "lang": "yaml",
+    "code": "otlphttp:\n  endpoint: http://fluent-bit.fluenbit.svc...\n  compression: none\n  tls:\n    insecure: true"
+  },
+  "a30fa72cb52658d8": {
+    "lang": "yaml",
+    "code": "apiVersion: cilium.io/v2\nkind: CiliumNetworkPolicy\nmetadata:\n  name: allow-ingress-from-oteld\n  namespace: default\nspec:\n  endpointSelector:\n    matchLabels:\n      component: otel-collector\n  ingress:\n    - fromEndpoints:\n        - matchLabels:\n            io.kubernetes.pod.namespace: hipster-shop\n      toPorts:\n        - ports:\n            - port: \"4317\""
+  },
+  "a3e374ef724fe75b": {
+    "lang": "yaml",
+    "code": "receivers:\n  kubeletstats:\n    collection_interval: 20s\n    auth_type: \"serviceAccount\"\n    endpoint: \"https://${K8S_NODE_NAME}:10250\"\n    insecure_skip_verify: true"
+  },
+  "a85bcb41b659d001": {
+    "lang": "yaml",
+    "code": "iVersion: core.openfeature.dev/v1beta1\nkind: FeatureFlagSource\nmetadata:\n  name: feature-flag-source-sample\nspec:\n  port: 80\n  evaluator: json\n  tag: main\n  sources:\n    - source: namespace/name\n      provider: kubernetes\n  probesEnabled: true\n  debugLogging: true\n  otelCollectorUri: http://localhost:4317\n  resources:\n    requests:\n      cpu: 100m\n      memory: 128Mi\n    limits:\n      cpu: 200m\n      memory: 256Mi"
+  },
+  "ac7f58eef01ce9e0": {
+    "lang": "yaml",
+    "code": "apiVersion: linkerd.io/v1alpha2\nkind: ServiceProfile\nmetadata:\n  creationTimestamp: null\n  name: frontend.hipster-shop.svc.cluster.local\n  namespace: hipster-shop\nspec:\n  routes:\n    - condition:\n        method: GET\n        pathRegex: /\n      name: GET /\n    - condition:\n        method: GET\n        pathRegex: /carts\n      name: GET /carts\n    - condition:\n        method: GET\n        pathRegex: /products/[^/]*\n      name: GET /products/{id}\n    - condition:\n        method: POST\n        pathRegex: /setcurrency\n      name: POST /setcurrency\n    - condition:\n        method: POST\n        pathRegex: /carts\n      name: POST /carts"
+  },
+  "ad1ad829bab82756": {
+    "lang": "text",
+    "code": "apiVersion: metrics.keptn.sh/v1alpha1\nkind: KeptnMetric\nmetadata:\n  name: keptnmetric-sample\n  namespace: otel-demo\nspec:\n  provider:\n    name: \" prometheus-provider\"\n  query: \"\"sum(node:node_num_cpu:sum ) - sum(kube_pod_container_resource_requests{resource='cpu'})\"\n  fetchIntervalSeconds: 5"
+  },
+  "afd63c8cd9f0054f": {
+    "lang": "yaml",
+    "code": "receivers:\n  otlp:\n    protocols:\n      grpc: { }\n      http: { }\n  filelog:\n    include:\n      - /var/log/pods/*/*/*.log\n    start_at: beginning\n    include_file_path: true\n    include_file_name: false\nprocessors:\n  batch:\n    send_batch_max_size: 1000\n    timeout: 30s\n    send_batch_size : 800\n  k8sattributes:\n    auth_type: \"serviceAccount\"\n    passthrough: false\n    extract:\n      metadata:\n        - k8s.pod.name\n        - k8s.pod.uid\n        - k8s.deployment.name\n        - k8s.statefulset.name\n        - k8s.daemonset.name\n        - k8s.cronjob.name\n        - k8s.namespace.name\n        - k8s.node.name\n        - k8s.cluster.uid\n    pod_association:\n      - sources:\n          - from: resource_attribute\n            name: k8s.pod.name\n          - from: resource_attribute\n            name: k8s.namespace.name\n    # Pod labels which can be fetched via K8sattributeprocessor\n  memory_limiter:\n    check_interval: 1s\n    limit_percentage: 70\n    spike_limit_percentage: 30\n  resource:\n    attributes:\n      - key: k8s.cluster.name\n        value: ${CLUSTERNAME}\n        action: insert\n  transform/audit:\n    error_mode: ignore\n    log_statements:\n      - context: log\n        statements:\n          - merge_maps(cache,ParseJSON(attributes[\"log\"]), \"upsert\") where attributes[\"log\"] != nil\n          - set(resource.attributes[\"opa.message\"],cache[\"msg\"]) where cache[\"msg\"] != nil\n          - set(resource.attributes[\"opa.constraint.name\"],cache[\"constraint_kind\"]) where cache[\"constraint_kind\"] != nil\n          - set(resource.attributes[\"opa.event.type\"],cache[\"event_type\"]) where cache[\"event_type\"] != nil\n          - set(resource.attributes[\"opa.constraint.action\"],cache[\"constraint_action\"]) where cache[\"constraint_action\"]!=nil\n          - set(resource.attributes[\"opa.request.user\"], cache[\"request_username\"]) where cache[\"request_username\"] != nil\n          - set(resource.attributes[\"opa.process\"], cache[\"process\"]) where cache[\"process\"] != nil\n          - set(resource.attributes[\"opa.timestamp\"], cache[\"ts\"]) where cache[\"ts\"] != nil\nconnectors:\n  routing/log:\n    default_pipelines: [ logs/default ]\n    error_mode: ignore\n    table:\n      - statement: route() where attributes[\"k8s.namespace.name\"] == \"gatekeeper\"\n        pipelines: [ logs/audit ]\n  otlphttp:\n    endpoint: ${DT_ENDPOINT}/api/v2/otlp\n    headers:\n      Authorization: \"Api-Token ${DT_API_TOKEN}\"\nservice:\n  pipelines:\n    logs/audit:\n      receivers: [ routing/log ]\n      processors: [ transform/audit,k8sattributes,transform,resource,batch ]\n      exporters: [ otlphttp,logging ]\n    logs/default:\n      receivers: [ routing/log ]\n      processors: [ k8sattributes,transform,resource,batch ]\n      exporters: [ otlphttp ]\n    logs:\n      receivers: [filelog]\n      processors: [memory_limiter]\n      exporters: [ routing/log]"
+  },
+  "affdf92a9e846dd8": {
+    "lang": "sql",
+    "code": "SELECT\n  datname, 100 * xact_commit / (xact_commit + xact_rollback) as commit_ratio\nFROM\n  pg_stat_database\nWHERE\n  (xact_commit + xact_rollback) > 0;"
+  },
+  "b0a7a0c958cd422a": {
+    "lang": "text",
+    "code": "<source>\n  type tail\n  path /var/log/containers/*.log\n  pos_file fluentd-docker.pos\n  time_format %Y-%m-%dT%H:%M:%S\n  tag kubernetes.*\n  format json\n  read_from_head true\n</source>"
+  },
+  "b6cfb860b32ab29f": {
+    "lang": "typescript",
+    "code": "// add a hook for this evaluation only\nconst value = await client.getBooleanValue(FLAG_KEY, false, context, {\n  hooks: [new ExampleInvocationHook()],\n});"
+  },
+  "b76e537cb929e92a": {
+    "lang": "text",
+    "code": "<match kubernetes.*>\n  @type copy\n  <store>\n    @type forward\n    <server>\n      name myserver1\n      host 192.168.1.3\n      port 24224\n    </server>\n  </store>\n  <store>\n    @type prometheus\n    <metric>\n      name fluentd_output_status_num_records_total\n      type counter desc The total number of outgoing records\n      <labels> tag ${tag}\n        hostname ${hostname}\n      </labels>\n    </metric>\n  </store>\n</match>"
+  },
+  "ba2a4500cb33d22b": {
+    "lang": "yaml",
+    "code": "triggers:\n  - type: metrics-api\n    metadata:\n      targetValue: \"100\"\n      url: '<tenant-baseurl>/api/v2/metrics/query?metricSelector=builtin:service.requestCount.total:filter(and(in(\"dt.entity.service\",entitySelector(\"type(service),entityName(~\"greeting-service~\")\")))):splitBy():sum:timeshift(-3m):rollup(avg,3m):last'\n      valueLocation: 'result.0.data.0.values.0'\n      authMode: apiKey\n      keyParamName: Authorization\n    authenticationRef:\n      name: keda-auth"
+  },
+  "baacd6c259751efc": {
+    "lang": "text",
+    "code": "- name: opentelemetry\n  host: ${DT_ENDPOINT_HOST}\n  port: 443\n  match: \"kube.*\"\n  metrics_uri: /api/v2/otlp/v1/metrics\n  traces_uri: /api/v2/otlp/v1/traces\n  logs_uri: /api/v2/otlp/v1/logs\n  log_response_payload: true\n  tls: On\n  tls.verify: Off\n  header:\n    - Authorization Api-Token ${DT_API_TOKEN}\n    - Content-type application/x-protobuf\n- name: elastic\n  …\n  processors:\n    logs:\n      - name: sql\n        query: \"SELECT * FROM STREAM where k8s.namespace.name='otel-demo';\"\n- name: loki\n  …\n  processors:\n    logs:\n      - name: sql\n        query: \"SELECT * FROM STREAM where k8s.namespace.name='hipster-shop';\""
+  },
+  "be026924df303e53": {
+    "lang": "yaml",
+    "code": "prometheus:\n  config:\n    scrape_configs:\n      - job_name: opentelemetry-collector\n        scrape_interval: 5s\n        static_configs:\n          - targets:\n              - ${MY_POD_IP}:8888"
+  },
+  "be63aa4a92190709": {
+    "lang": "yaml",
+    "code": "apiVersion: opentelemetry.io/v1alpha1\nkind: OpenTelemetryCollector\nmetadata:\n  name: myoperator\nspec:\n  config: |\n    receivers:\n      otlp:\n        protocols:\n          grpc:\n          http:\n    processors:\n    exporters:\n      logging:\n    service:\n      pipelines:\n        traces:\n          receivers: [otlp]\n          processors: []\n          exporters: [logging]"
+  },
+  "be6e45cd79309bf3": {
+    "lang": "javascript",
+    "code": "var useNewAlgorithm = false;\nif( useNewAlgorithm ){\n  return enhancedSplineReticulation();\n}else{\n  return oldFashionedSplineReticulation();\n}"
+  },
+  "c032e6a4cd316e71": {
+    "lang": "yaml",
+    "code": "apiVersion: cilium.io/v1alpha1\nkind: TracingPolicy\nmetadata:\n  name: \"tcp-send-monitoring\"\nspec:\n  kprobes:\n    - call: \"tcp_sendmsg\"\n      syscall: false\n      args:\n        - index: 0\n          type: \"sock\"\n        - index: 1\n          type: \"auto\"\n      selectors:\n        - matchArgs:\n            - index: 0\n              operator: \"NotDAddr\"\n              values:\n                - \"127.0.0.1\""
+  },
+  "c1ce4d9af13fc9a5": {
+    "lang": "yaml",
+    "code": "apiVersion: autoscaling/v2\nkind: HorizontalPodAutoscaler\nmetadata:\n  name: test-hpa\nspec:\n  scaleTargetRef:\n    apiVersion: apps/v1\n    kind: Deployment\n    name: frontend\n  minReplicas: 1\n  maxReplicas: 5\n  metrics:\n    - type: Resource\n      resource:\n        name: memory\n        targetAverageUtilization: 60"
+  },
+  "c1f7afcb99d94326": {
+    "lang": "text",
+    "code": "<match haproxy.*>\n  type stdout\n</match>"
+  },
+  "c4db2528bd434925": {
+    "lang": "go",
+    "code": "otelpyroscope.NewTracerProvider(tp,\n\totelpyroscope.WithAppName(\"checkoutService.otel-demo\"),\n\totelpyroscope.WithPyroscopeURL(pyroscope_server),\n\totelpyroscope.WithRootSpanOnly(true),\n\totelpyroscope.WithAddSpanName(true),\n\totelpyroscope.WithProfileURL(true),\n\totelpyroscope.WithProfileBaselineURL(true),\n))"
+  },
+  "c4ed4f86027b7780": {
+    "lang": "typescript",
+    "code": "export class MyHook implements Hook {\n  before(hookContext: HookContext) {\n    // code to run before flag evaluation\n  }\n\n  after(hookContext: HookContext, evaluationDetails: EvaluationDetails<FlagValue>) {\n    // code to run after successful flag evaluation\n  }\n\n  error(hookContext: HookContext, err: Error) {\n    // code to run if there's an error during before hooks or during flag evaluation\n  }\n\n  finally(hookContext: HookContext) {\n    // code to run after all other stages, regardless of success/failure\n  }\n}"
+  },
+  "c6e2993ccceb964f": {
+    "lang": "yaml",
+    "code": "apiVersion: operator.kubearmor.com/v1\nkind: KubeArmorConfig\nmetadata:\n  labels:\n    app.kubernetes.io/name: kubearmorconfig\n    app.kubernetes.io/instance: kubearmorconfig-sample\n    app.kubernetes.io/part-of: kubearmoroperator\n    app.kubernetes.io/managed-by: kustomize\n    app.kubernetes.io/created-by: kubearmoroperator\n  name: [config name]\n  namespace: [namespace name]\nspec:\n  # default global posture\n  defaultCapabilitiesPosture: audit|block # DEFAULT - audit\n  defaultFilePosture: audit|block # DEFAULT - audit\n  defaultNetworkPosture: audit|block # DEFAULT - audit\n  enableStdOutLogs: [show stdout logs for relay server] # DEFAULT - false\n  enableStdOutAlerts: [show stdout alerts for relay server] # DEFAULT - false\n  enableStdOutMsgs: [show stdout messages for relay server] # DEFAULT - false\n  # default visibility configuration\n  defaultVisibility: [comma separated: process|file|network] # DEFAULT - process,network\n  # KubeArmor image and pull policy\n  kubearmorImage:\n    image: [image-repo:tag] # DEFAULT - kubearmor/kubearmor:stable\n    imagePullPolicy: [image pull policy] # DEFAULT - Always\n  # KubeArmor init image and pull policy\n  kubearmorInitImage:\n    image: [image-repo:tag] # DEFAULT - kubearmor/kubearmor-init:stable\n    imagePullPolicy: [image pull policy] # DEFAULT - Always\n  # KubeArmor relay image and pull policy\n  kubearmorRelayImage:\n    image: [image-repo:tag] # DEFAULT - kubearmor/kubearmor-relay-server:latest\n    imagePullPolicy: [image pull policy] # DEFAULT - Always\n  # KubeArmor controller image and pull policy\n  kubearmorControllerImage:\n    image: [image-repo:tag] # DEFAULT - kubearmor/kubearmor-controller:latest\n    imagePullPolicy: [image pull policy] # DEFAULT - Always\n  # kube-rbac-proxy image and pull policy\n  kubeRbacProxyImage:\n    image: [image-repo:tag] # DEFAULT - gcr.io/kubebuilder/kube-rbac-proxy:v0.15.0\n    imagePullPolicy: [image pull policy]"
+  },
+  "c86d1c450484f313": {
+    "lang": "text",
+    "code": "count by (service) ( rate(\n  {app=\"nginx-nginx-ingress\",pod=\"nginx-nginx-ingress-7b95f794c4-kv5rb\"}\n    |=\"ingress\" !=\"stderr\"\n    | pattern `<remote_addr> [<time_local>] <method> <request> <_> <status> <body_bytes_sent> <request_time> <_> <upstream_response_time> <_> <status_ingress> <resource_name> <_> <namespace_patter> <service>`\n  [1m]))"
+  },
+  "cbaaf2ddb262698c": {
+    "lang": "yaml",
+    "code": "apiVersion: lifecycle.keptn.sh/v1alpha2\nkind: KeptnEvaluationProvider\nmetadata:\n  name: prometheus-provider\n  namespace: otel-demo\nspec:\n  targetServer: \"http://prometheus-kube-prometh...\""
+  },
+  "cf41327ea1e6add7": {
+    "lang": "yaml",
+    "code": "apiVersion: opentelemetry.io/v1alpha1\nkind: Instrumentation\nmetadata:\n  name: my-instrumentation\nspec:\n  exporter:\n    endpoint: http://otel-collector:4317\n  propagators:\n    - tracecontext\n    - baggage\n    - b3\n  sampler:\n    type: parentbased_traceidratio\n    argument: \"0.25\""
+  },
+  "d35646e1c3e0e041": {
+    "lang": "yaml",
+    "code": "distributed_tracing:\n  type: grpc\n  address: url of your otel collector on the port 4317\n  service_name: name of the OPA agent"
+  },
+  "d886d08941624f55": {
+    "lang": "yaml",
+    "code": "apiVersion: security.kubearmor.com/v1\nkind: KubeArmorClusterPolicy\nmetadata:\n  name: [policy name]\n  namespace: [namespace name] # --> optional\nspec:\n  severity: [1-10] # --> optional (1 by default)\n  tags: [\"tag\", ...] # --> optional\n  message: [message] # --> optional\n  selector:\n    matchExpressions:\n      - key: [namespace]\n        operator: [In|NotIn]\n        values:\n          - [namespaces]\n  action:"
+  },
+  "d903ae4d6be3a757": {
+    "lang": "text",
+    "code": "  @type prometheus\n  <metric>\n    name message_foo_counter\n    type counter\n    desc The total number of foo in message.\n    key foo\n  </metric>\n</filter>"
+  },
+  "ded522de1ec1a747": {
+    "lang": "yaml",
+    "code": "apiVersion: constraints.gatekeeper.sh/v1beta1\nkind: K8sHttpsOnly\nmetadata:\n  name: ingress-https-only\nspec:\n  match:\n    kinds:\n      - apiGroups: [\"extensions\", \"networking.k8s.io\"]\n        kinds: [\"Ingress\"]"
+  },
+  "df8225b1e8635f8e": {
+    "lang": "yaml",
+    "code": "name: Test adding products\ntrigger:\n  type: http\n  httpRequest:\n    url: http://onlineboutique/cart\n    method: POST\n    headers:\n      - key: Content-Type\n        value: application/json\n    body: '{ \"id\": 52, quantity: 3 }'\ntestDefinition:\n  - selector: span[name = \"POST /cart\"]\n    assertions:\n      - http.status_code = 200"
+  },
+  "e044508f3b3e82d3": {
+    "lang": "yaml",
+    "code": "options:\n  # none: false\n  # stack-addresses: true\n  # exec-env: false\n  # exec-hash: dev-inode\n  # parse-arguments: true\n  # sort-events: false"
+  },
+  "e0c0b20b7a0e20e7": {
+    "lang": "text",
+    "code": "<source>\n  type tail\n  path /var/log/haproxy/haproxy.log\n  pos /path/to/file_position_file\n  format /^(?<ps>\\w+)\\[(?<pid>\\d+)\\]: (?<pri>\\w+) (?<c_ip>[\\w\\.]+):(?<c_port>\\d+) \\[(?<time>.+)\\] (?<f_end>[\\w-]+) (?<b_end>[\\w-]+)\\/(?<b_server>[\\w-]+) (?<tw>\\d+)\\/(?<tc>\\d+)\\/(?<tt>\\d+) (?<bytes>\\d+) (?<t_state>[\\w-]+) (?<actconn>\\d+)\\/(?<feconn>\\d+)\\/(?<beconn>\\d+)\\/(?<srv_conn>\\d+)\\/(?<retries>\\d+) (?<srv_queue>\\d+)\\/(?<backend_queue>\\d+)$/\n  tag haproxy.tcp\n  time_format %d/%B/%Y:%H:%M:%S\n</source>"
+  },
+  "e181f56ecc8ae569": {
+    "lang": "yaml",
+    "code": "network:\n  matchProtocols:\n    - protocol: [TCP|tcp|UDP|udp|ICMP|icmp]\n      fromSource: # --> optional\n        - path: [absolute exectuable path]"
+  },
+  "e3f5c6ad2c158d26": {
+    "lang": "yaml",
+    "code": "apiVersion: core.openfeature.dev/v1beta1\nkind: FeatureFlag\nmetadata:\n  name: featureflag-sample\nspec:\n  flagSpec:\n    flags:\n      \"simple-flag\":\n        state: \"ENABLED\"\n        variants:\n          \"on\": true\n          \"off\": false\n        defaultVariant: \"on\""
+  },
+  "e504daa3b5a1edb1": {
+    "lang": "yaml",
+    "code": "# Ingest data by tailing one or more files\nsources:\n  apache_logs:\n    type: \"file\"\n    include:\n      - \"/var/log/apache2/*.log\" # supports globbing\n    ignore_older_secs: 86400 # 1 day\n\n# Structure and parse via Vector's Remap Language\ntransforms:\n  apache_parser:\n    inputs:\n      - \"apache_logs\"\n    type: \"remap\"\n    source: \". = parse_apache_log(.message)\"\n\n  # Sample the data to save on cost\n  apache_sampler:\n    inputs:\n      - \"apache_parser\"\n    type: \"sample\"\n    rate: 2 # only keep 50% (1/`rate`)\n\n# Send structured data to a short-term storage\nsinks:\n  es_cluster:\n    inputs:\n      - \"apache_sampler\" # only take sampled data\n    type: \"elasticsearch\"\n    endpoints:\n      - \"http://79.12.221.222:9200\"\n    bulk:\n      index: \"vector-%Y-%m-%d\" # daily indices"
+  },
+  "e5121184716e5cb4": {
+    "lang": "yaml",
+    "code": "capabilities:\n  matchCapabilities:\n    - capability: [capability name]\n      fromSource: # --> optional\n        - path: [absolute exectuable path]"
+  },
+  "ec0ac5e4e849dc4a": {
+    "lang": "yaml",
+    "code": "app.kubernetes.io/part-of: otel-demo-applicaton\napp.kubernetes.io/name: checkoutservice\napp.kubernetes.io/version: \"1.2.1\""
+  },
+  "edcd2794da4abd9d": {
+    "lang": "text",
+    "code": "{\n  job=\"httpcollector\",\n  method=\"GET\",\n  path=\"/tesst' ,\n  __name__=\"http_request_total\"\n}"
+  },
+  "f13af84dab990010": {
+    "lang": "text",
+    "code": "/etc/falco/falco_rules.yaml\n- list: my_programs\n  items: [ls, cat, pwd]\n- rule: my_programs_opened_file\n  desc: track whenever a set of programs opens a file\n  condition: proc.name in (my_programs) and (evt.type=open or evt.type=openat)\n  output: a tracked program opened a file (user=%user.name command=%proc.cmdline file=%fd.name)\n  priority: INFO\nCopy\n/etc/falco/falco_rules.local.yaml\n- list: my_programs\n  items: [cp]\n  override:\n    items: append"
+  },
+  "f2ab147e4dfd5e4d": {
+    "lang": "text",
+    "code": "apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: Hello-Ingress\nspec:\n  ingressClassName: nginx\n  rules:\n    - host \"mydomain\"\n      http:\n        paths:\n          - pathType: ImplementationSpecific\n            path: \"/app1\"\n            backend:\n              service:\n                name: service1\n                port:\n                  number: 80\n          - pathType: ImplementationSpecific\n            path: \"/app1\"\n            backend:\n              service:\n                name: service1\n                port:\n                  number: 80"
+  },
+  "f405332db68dc59b": {
+    "lang": "yaml",
+    "code": "apiVersion: cilium.io/v2\nkind: CiliumNetworkPolicy\nmetadata:\n  name: allow-ingress-from-oteld\n  namespace: default\nspec:\n  endpointSelector:\n    matchLabels:\n      component: otel-collector\n  ingress:\n    - fromEndpoints:\n        - matchLabels:\n            io.kubernetes.pod.namespace: hipster-shop\n      toPorts:\n        - ports:\n            - port: \"4317\"\n          rules:\n            http:\n              - method: \"POST\"\n                path: \"/api/v1/traces\"\n  egress:\n    - toFQDNs:\n        - matchPattern: \"*.live.dynatra.com\""
+  },
+  "f6ea4bf1a50db795": {
+    "lang": "yaml",
+    "code": "apiVersion: cilium.io/v2\nkind: CiliumNetworkPolicy\nmetadata:\n  name: allow-ingress-from-oteld\n  namespace: default\nspec:\n  endpointSelector:\n    matchLabels:\n      component: otel-collector\n  ingress:\n    - fromEndpoints:\n        - matchLabels:\n            io.kubernetes.pod.namespace: hipster-shop\n      toPorts:\n        - ports:\n            - port: \"4317\"\n  egress:\n    - toFQDNs:\n        - matchPattern: \"*.live.dynatra.com\""
+  },
+  "fef8ebf5d4907eb4": {
+    "lang": "text",
+    "code": "Htttps_protocol if{\n  Some container in pod.spec.containers\n  coontainer.port[_].containerPort == 443\n}\nHtttps_protocol if{\n  Some container in pod.spec.containers\n  coontainer.port[_].name == \"https\"\n}"
+  },
+  "ff0b529efeba1a75": {
+    "lang": "yaml",
+    "code": "apiVersion: templates.gatekeeper.sh/v1\nkind: ConstraintTemplate\nmetadata:\n  name: k8shttpsonly\n  annotations:\n    metadata.gatekeeper.sh/title: \"HTTPS Only\"\n    metadata.gatekeeper.sh/version: 1.0.2\n    description: >-\n      Requires Ingress resources to be HTTPS only. Ingress resources must\n      include the `kubernetes.io/ingress.allow-http` annotation, set to `false`.\n      By default a valid TLS {} configuration is required, this can be made\n      optional by setting the `tlsOptional` parameter to `true`.\n\n      https://kubernetes.io/docs/con...#tls\nspec:\n  crd:\n    spec:\n      names:\n        kind: K8sHttpsOnly\n      validation:\n        # Schema for the `parameters` field\n        openAPIV3Schema:\n          type: object\n          description: >-\n            Requires Ingress resources to be HTTPS only. Ingress resources must\n            include the `kubernetes.io/ingress.allow-http` annotation, set to\n            `false`. By default a valid TLS {} configuration is required, this\n            can be made optional by setting the `tlsOptional` parameter to\n            `true`.\n          properties:\n            tlsOptional:\n              type: boolean\n              description: \"When set to `true` the TLS {} is optional, defaults\n                to false.\"\n  targets:\n    - target: admission.k8s.gatekeeper.sh\n      rego: |\n        package k8shttpsonly\n\n        violation[{\"msg\": msg}] {\n          input.review.object.kind == \"Ingress\"\n          regex.match(\"^(extensions|networking.k8s.io)/\", input.review.object.apiVersion)\n          ingress := input.review.object\n          not https_complete(ingress)\n          not tls_is_optional\n          msg := sprintf(\"Ingress should be https. tls configuration and allow-http=false annotation are required for %v\", [ingress.metadata.name])\n        }\n\n        violation[{\"msg\": msg}] {\n          input.review.object.kind == \"Ingress\"\n          regex.match(\"^(extensions|networking.k8s.io)/\", input.review.object.apiVersion)\n          ingress := input.review.object\n          not annotation_complete(ingress)\n          tls_is_optional\n          msg := sprintf(\"Ingress should be https. The allow-http=false annotation is required for %v\", [ingress.metadata.name])\n        }\n\n        https_complete(ingress) = true {\n          ingress.spec[\"tls\"]\n          count(ingress.spec.tls) > 0\n          ingress.metadata.annotations[\"kubernetes.io/ingress.allow-http\"] == \"false\"\n        }\n\n        annotation_complete(ingress) = true {\n          ingress.metadata.annotations[\"kubernetes.io/ingress.allow-http\"] == \"false\"\n        }\n\n        tls_is_optional {\n          parameters := object.get(input, \"parameters\", {})\n          object.get(parameters, \"tlsOptional\", false) == true\n        }"
+  }
+}

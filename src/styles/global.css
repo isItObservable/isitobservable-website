@@ -1,0 +1,86 @@
+/* The same font files as the old site (static Inter, Space Grotesk), so text sets and wraps identically. Regular Space Grotesk is
+   registered as weight 300, as it always was. */
+@font-face { font-family: 'Inter'; src: url('../assets/fonts/Inter-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('../assets/fonts/Inter-Medium.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('../assets/fonts/Inter-SemiBold.woff2') format('woff2'); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('../assets/fonts/Inter-Bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'SpaceGrotesk'; src: url('../assets/fonts/SpaceGrotesk-Regular.woff2') format('woff2'); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: 'SpaceGrotesk'; src: url('../assets/fonts/SpaceGrotesk-Bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+
+/* Design tokens. Breakpoints: 600, 800 (tablet), 1066 (desktop), 1200. */
+:root {
+  --black: #020818;
+  --white: #fff;
+  --primary: #0080ff;
+  --primary-700: #0073e5;
+  --secondary: #b880ff;
+  --gray: #dee2e6;
+  --light-gray: #f2f4f6;
+  --muted: #878d99;
+  --pink: #eddcff;
+  --dark-blue: #082048;
+  --very-dark-blue: #081028;
+  --shadow: 0 0 32px 0 rgba(2, 8, 24, 0.1);
+  --gradient: linear-gradient(to right, var(--primary), var(--secondary));
+  --gradient-dark: linear-gradient(to right, var(--very-dark-blue), var(--dark-blue));
+  --sans: Inter, sans-serif;
+  --serif: SpaceGrotesk, sans-serif;
+  --mono: Monaco, monospace;
+
+  /* Type scale: small steps are fixed, larger ones grow fluidly from 320px to 1066px (16px × 1.1ⁿ → 18px × 1.2ⁿ). */
+  --step-m4: 10.93px;
+  --step-m3: 12.02px;
+  --step-m2: 13.22px;
+  --step-m1: clamp(14.55px, calc(14.55px + 0.45 * ((100vw - 320px) / 746)), 15.00px);
+  --step-0: clamp(16.00px, calc(16.00px + 2.00 * ((100vw - 320px) / 746)), 18.00px);
+  --step-1: clamp(17.60px, calc(17.60px + 4.00 * ((100vw - 320px) / 746)), 21.60px);
+  --step-2: clamp(19.36px, calc(19.36px + 6.56 * ((100vw - 320px) / 746)), 25.92px);
+  --step-3: clamp(21.30px, calc(21.30px + 9.81 * ((100vw - 320px) / 746)), 31.10px);
+  --step-4: clamp(23.43px, calc(23.43px + 13.90 * ((100vw - 320px) / 746)), 37.32px);
+  --step-5: clamp(25.77px, calc(25.77px + 19.02 * ((100vw - 320px) / 746)), 44.79px);
+  --step-6: clamp(28.34px, calc(28.34px + 25.40 * ((100vw - 320px) / 746)), 53.75px);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; padding: 0; }
+html { scroll-behavior: smooth; line-height: 1.5; -webkit-text-size-adjust: 100%; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition: none !important; } }
+html.is-locked, html.is-locked body { overflow-y: hidden; height: 100%; }
+body {
+  min-height: 100vh; overflow-x: hidden; background: var(--white); color: var(--black);
+  font-family: var(--sans); text-rendering: optimizeLegibility;
+}
+img, picture, svg { display: block; max-width: 100%; height: auto; }
+a { color: inherit; text-decoration: none; }
+button, input { font: inherit; color: inherit; background: none; border: 0; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* Text */
+h1, h2, h3, h4, h5, h6 { font-family: var(--serif); font-weight: 700; }
+h1 { font-size: var(--step-6); line-height: 1.11524; }
+h2 { font-size: var(--step-5); line-height: 1.25; }
+h3 { font-size: var(--step-4); line-height: 1.25; }
+h4 { font-size: var(--step-3); }
+h5 { font-size: var(--step-2); }
+h6 { font-size: var(--step-1); }
+p, ol, ul { font-size: var(--step-0); line-height: 1.77778; margin-top: 2rem; }
+ul { list-style: disc; }
+ul li { margin-left: 2.25rem; }
+ol { list-style: none; counter-reset: item; }
+ol li { position: relative; padding-left: 2.25rem; counter-increment: item; }
+ol li::before {
+  content: counter(item); position: absolute; top: 0.25rem; left: 0; width: 1.5rem; height: 1.5rem; border-radius: 50%;
+  background: var(--primary); color: var(--white); font-size: var(--step-m1); line-height: 1.5rem; text-align: center;
+}
+blockquote { position: relative; margin: 4rem 0; padding-left: 2.25rem; font-family: var(--serif); font-size: var(--step-2); }
+blockquote::before { content: ''; position: absolute; left: 0; width: 2px; height: 100%; background: var(--primary); }
+hr { border: 0; border-top: 1px solid var(--gray); }
+
+/* Layout */
+.container { width: 100%; margin-inline: auto; padding-inline: 24px; }
+@media (min-width: 800px) { .container { max-width: 1248px; } }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.label { font-size: var(--step-m2); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+.button { display: inline-block; padding: 0.5rem 1.5rem; border-radius: 0.25rem; background: var(--primary); color: var(--white); }
+.button:hover { background: var(--primary-700); }

@@ -1,0 +1,37 @@
+---
+// YouTube, X, Bluesky, LinkedIn. "white" swaps to the blue icon on hover (footer), "blue" stays blue (mobile menu).
+import YoutubeWhite from '~/icons/youtube-white.svg';
+import YoutubeBlue from '~/icons/youtube-blue.svg';
+import XWhite from '~/icons/x-white.svg';
+import XBlue from '~/icons/x-blue.svg';
+import BlueskyWhite from '~/icons/bluesky-white.svg';
+import BlueskyBlue from '~/icons/bluesky-blue.svg';
+import LinkedinWhite from '~/icons/linkedin-white.svg';
+import LinkedinBlue from '~/icons/linkedin-blue.svg';
+import { SOCIAL } from '~/lib/site';
+
+interface Props { variant: 'white' | 'blue'; class?: string }
+const { variant, class: cls } = Astro.props;
+const ICONS = { youtube: [YoutubeWhite, YoutubeBlue], x: [XWhite, XBlue], bluesky: [BlueskyWhite, BlueskyBlue], linkedin: [LinkedinWhite, LinkedinBlue] } as const;
+---
+<ul class:list={['social', variant, cls]}>
+  {SOCIAL.map(({ name, icon, href }) => {
+    const [White, Blue] = ICONS[icon];
+    return (
+      <li>
+        <a href={href} target="_blank" rel="noopener" aria-label={name}>
+          {variant === 'white' && <White class="default" aria-hidden="true" />}
+          <Blue class="hover" aria-hidden="true" />
+        </a>
+      </li>
+    );
+  })}
+</ul>
+
+<style>
+  .social { display: flex; gap: 2rem; margin: 0; list-style: none; }
+  .social li { margin: 0; }
+  .social a { display: flex; width: 20px; height: 20px; }
+  .white .hover, .white a:hover .default { display: none; }
+  .white a:hover .hover { display: block; }
+</style>

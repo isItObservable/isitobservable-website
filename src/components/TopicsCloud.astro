@@ -1,0 +1,19 @@
+---
+// Topic pills; each links to the search for that topic (topics have no pages of their own).
+import { topicUrl } from '~/lib/content';
+
+interface Props { topics: { title: string }[] }
+const { topics } = Astro.props;
+---
+{topics.length > 0 && (
+  <ul class="topics">
+    {topics.map((topic) => <li><a href={topicUrl(topic.title)}>{topic.title}</a></li>)}
+  </ul>
+)}
+
+<style>
+  .topics { display: flex; flex-wrap: wrap; margin: 0.5rem 0 0; list-style: none; }
+  li { margin: 0.5rem 0.5rem 0 0; padding: 0.25rem 0.5rem; border-radius: 0.25rem; background: rgb(0 128 255 / 0.3); color: var(--primary); font-size: var(--step-m2); }
+  li:hover { background: rgb(0 128 255 / 0.4); }
+  a { white-space: nowrap; }
+</style>

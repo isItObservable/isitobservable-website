@@ -1,0 +1,35 @@
+---
+// Article sidebar: table of contents (h2), topics, and on desktop "Watch Episode" + "Go Deeper".
+// On mobile the last two render below the content (EpisodeLinks).
+import type { MarkdownHeading } from 'astro';
+import TopicsCloud from './TopicsCloud.astro';
+import EpisodeLinks from './EpisodeLinks.astro';
+
+interface Props { headings: MarkdownHeading[]; topics: { title: string }[]; youtube?: string; goDeeper: { text: string; url: string }[]; desktop: boolean }
+const { headings, topics, youtube, goDeeper, desktop } = Astro.props;
+const toc = headings.filter((h) => h.depth === 2);
+---
+<div class="sidebar">
+  {toc.length > 0 && (
+    <>
+      <p class="title">Table of Contents</p>
+      <ol class="toc">{toc.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol>
+    </>
+  )}
+  {topics.length > 0 && (
+    <>
+      <p class="title">Topics</p>
+      <TopicsCloud topics={topics} />
+    </>
+  )}
+  {desktop && <EpisodeLinks youtube={youtube} goDeeper={goDeeper} />}
+</div>
+
+<style>
+  .sidebar { position: sticky; top: 6rem; }
+  .title { font-size: var(--step-m2); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; opacity: 0.5; }
+  .toc { margin-top: 0.25rem; }
+  .toc li { padding: 0.5rem 0 0; font-size: var(--step-m1); line-height: 1.5; }
+  .toc li::before { display: none; }
+  .toc a { color: var(--primary); }
+</style>

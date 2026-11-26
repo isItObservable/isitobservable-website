@@ -1,0 +1,99 @@
+---
+// The one layout: SEO head (what SEOmatic rendered), tracking (OneTrust, GTM, Dynatrace RUM), header, footer.
+import '~/styles/global.css';
+import type { ImageMetadata } from 'astro';
+import { getImage } from 'astro:assets';
+import Header from '~/components/Header.astro';
+import Footer from '~/components/Footer.astro';
+import { DEFAULT_DESCRIPTION, SITE_NAME } from '~/lib/site';
+import { pageTitle } from '~/lib/seo';
+
+interface Props {
+  title: string; // without the site name
+  description?: string;
+  image?: ImageMetadata; // og/twitter image, cropped like SEOmatic (1200×630, 800×418)
+  robots?: string;
+  jsonLd?: Record<string, unknown>[];
+  siteNameFirst?: boolean; // search: "Is It Observable | Search"
+  stickyHeader?: boolean; // category pages have their own sticky bar
+}
+const { title, description = DEFAULT_DESCRIPTION, image, robots = 'all', jsonLd = [], siteNameFirst = false, stickyHeader = true } = Astro.props;
+
+const fullTitle = pageTitle(title, siteNameFirst);
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const og = image && (await getImage({ src: image, width: 1200, height: 630, fit: 'cover', format: 'jpg' }));
+const twitter = image && (await getImage({ src: image, width: 800, height: 418, fit: 'cover', format: 'jpg' }));
+const abs = (src: string) => new URL(src, Astro.site).href;
+// JSON in <script> is escaped so content can never close the tag.
+const json = (data: unknown) => JSON.stringify(data).replace(/</g, '\\u003c');
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,minimum-scale=1,width=device-width,viewport-fit=cover" />
+    <script is:inline type="text/javascript" src="https://js-cdn.dynatrace.com/jstag/145e12d594f/bf25977vwq/9e7cda982409de8b_complete.js" crossorigin="anonymous"></script>
+    <script is:inline src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js" type="text/javascript" charset="UTF-8" data-domain-script="2bfa7aee-6a76-468a-ad47-2bcd6503032e"></script>
+    <script is:inline type="text/javascript">function OptanonWrapper() { }</script>
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="referrer" content="no-referrer-when-downgrade" />
+    <meta name="robots" content={robots} />
+    <link rel="canonical" href={canonical} />
+    <meta content="111298744788592" property="fb:profile_id" />
+    <meta content="en" property="og:locale" />
+    <meta content={SITE_NAME} property="og:site_name" />
+    <meta content="website" property="og:type" />
+    <meta content={canonical} property="og:url" />
+    <meta content={title} property="og:title" />
+    <meta content={description} property="og:description" />
+    {og && <meta content={abs(og.src)} property="og:image" />}
+    {og && <meta content="1200" property="og:image:width" />}
+    {og && <meta content="630" property="og:image:height" />}
+    <meta content="https://www.youtube.com/isitobservable" property="og:see_also" />
+    <meta content="https://www.linkedin.com/company/isitobservable/" property="og:see_also" />
+    <meta content="https://twitter.com/IsitObservable" property="og:see_also" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@IsitObservable" />
+    <meta name="twitter:creator" content="@IsitObservable" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {twitter && <meta name="twitter:image" content={abs(twitter.src)} />}
+    {twitter && <meta name="twitter:image:width" content="800" />}
+    {twitter && <meta name="twitter:image:height" content="418" />}
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5" />
+    <meta name="msapplication-TileColor" content="#da532c" />
+    <meta name="theme-color" content="#ffffff" />
+    {jsonLd.map((data) => <script is:inline type="application/ld+json" set:html={json(data)} />)}
+    <!-- Consent defaults and Google Tag Manager, as SEOmatic rendered them -->
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('set', 'developer_id.dNzMyY2', true);
+      gtag('consent', 'default', { 'ad_storage': 'denied', 'region': ['ES', 'US-CA'] });
+      gtag('consent', 'default', { 'ad_storage': 'granted' });
+    </script>
+    <script is:inline>
+      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-WKGL2LN');
+    </script>
+  </head>
+  <body>
+    <noscript><iframe data-src="https://www.googletagmanager.com/ns.html?id=GTM-WKGL2LN" height="0" width="0" style="display:none;visibility:hidden" class="optanon-category-C0003"></iframe></noscript>
+    <a class="skip visually-hidden" href="#main">Skip to content</a>
+    <Header sticky={stickyHeader} />
+    <main id="main"><slot /></main>
+    <Footer />
+  </body>
+</html>
+
+<style>
+  .skip:focus { position: fixed; top: 1rem; left: 1rem; z-index: 100; width: auto; height: auto; clip-path: none; padding: 0.5rem 1rem; background: var(--white); }
+</style>

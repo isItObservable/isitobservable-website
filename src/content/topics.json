@@ -1,0 +1,118 @@
+[
+  {
+    "id": "autoscaling",
+    "title": "Autoscaling"
+  },
+  {
+    "id": "openfeature",
+    "title": "OpenFeature"
+  },
+  {
+    "id": "feature-flags",
+    "title": "Feature Flags"
+  },
+  {
+    "id": "logs",
+    "title": "Logs"
+  },
+  {
+    "id": "vector",
+    "title": "Vector"
+  },
+  {
+    "id": "security",
+    "title": "Security"
+  },
+  {
+    "id": "cilium",
+    "title": "Cilium"
+  },
+  {
+    "id": "ebpf",
+    "title": "eBPF"
+  },
+  {
+    "id": "testing",
+    "title": "Testing"
+  },
+  {
+    "id": "linkerd",
+    "title": "Linkerd"
+  },
+  {
+    "id": "performance-engineering",
+    "title": "Performance engineering"
+  },
+  {
+    "id": "grafana",
+    "title": "Grafana"
+  },
+  {
+    "id": "chaos-engineering",
+    "title": "Chaos Engineering"
+  },
+  {
+    "id": "nginx-controller",
+    "title": "NGINX Controller"
+  },
+  {
+    "id": "ingress-controller",
+    "title": "Ingress controller"
+  },
+  {
+    "id": "sqlcommenter",
+    "title": "SQLCommenter"
+  },
+  {
+    "id": "site-reliability-engineering",
+    "title": "Site Reliability Engineering"
+  },
+  {
+    "id": "fluentd",
+    "title": "FluentD"
+  },
+  {
+    "id": "fluent-bit",
+    "title": "Fluent Bit"
+  },
+  {
+    "id": "metrics",
+    "title": "Metrics"
+  },
+  {
+    "id": "traces",
+    "title": "Traces"
+  },
+  {
+    "id": "opentelemetry",
+    "title": "OpenTelemetry"
+  },
+  {
+    "id": "istio",
+    "title": "Istio"
+  },
+  {
+    "id": "service-mesh",
+    "title": "Service mesh"
+  },
+  {
+    "id": "promtail",
+    "title": "Promtail"
+  },
+  {
+    "id": "prometheus",
+    "title": "Prometheus"
+  },
+  {
+    "id": "keda",
+    "title": "Keda"
+  },
+  {
+    "id": "kubernetes",
+    "title": "Kubernetes"
+  },
+  {
+    "id": "observability",
+    "title": "Observability"
+  }
+]

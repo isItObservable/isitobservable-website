@@ -1,0 +1,18 @@
+[
+  {
+    "id": "henrik-rexed",
+    "craftId": 2950,
+    "name": "Henrik Rexed",
+    "username": "Henrik",
+    "email": "henrik.rexed@dynatrace.com",
+    "image": "~/assets/images/lego-dynatrace.png"
+  },
+  {
+    "id": "giulia-di-pietro",
+    "craftId": 3008,
+    "name": "Giulia Di Pietro",
+    "username": "giulia.dipietro",
+    "email": "giulia.dipietro@dynatrace.com",
+    "image": "~/assets/images/DSC07437-3.jpg"
+  }
+]

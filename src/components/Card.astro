@@ -1,0 +1,36 @@
+---
+// Article/page teaser: 3:2 image with the category badge, title below. "row" = home/article sliders, "grid" = category and search.
+import { Image } from 'astro:assets';
+import { categoryId, categoryTitle, entryImage, entryUrl, type Entry } from '~/lib/content';
+
+interface Props { entry: Entry; variant: 'row' | 'grid' }
+const { entry, variant } = Astro.props;
+const label = await categoryTitle(categoryId(entry));
+const image = entryImage(entry);
+const sizes = variant === 'row' ? '(min-width: 800px) 22vw, 42vw' : '(min-width: 800px) 25vw, 50vw';
+---
+<a class:list={['card', variant]} href={entryUrl(entry)}>
+  <div class="media">
+    <Image src={image.src} alt={image.alt} widths={[400, 800]} sizes={sizes} />
+    {label && <span class="badge">{label}</span>}
+  </div>
+  <span class="title">{entry.data.title}</span>
+</a>
+
+<style>
+  .card { display: block; }
+  .card:hover { color: var(--primary); }
+  .media { position: relative; }
+  .row .media { margin-bottom: 0.5rem; }
+  .media :global(img) { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; }
+  .grid .media :global(img) { border-radius: 0.25rem; }
+  .badge {
+    position: absolute; bottom: 0; left: 0; padding: 0.125rem 0.25rem; border-radius: 0 0.25rem 0 0.25rem;
+    background: var(--gradient); color: var(--white); font-size: var(--step-m4); font-weight: 500; line-height: 1.5; text-transform: uppercase; letter-spacing: 1px;
+  }
+  @media (min-width: 800px) { .badge { padding: 0.25rem 0.5rem; font-size: var(--step-m2); } }
+  .title { display: block; font-weight: 700; }
+  .row .title { display: inline; font-size: var(--step-m2); line-height: 1; } /* inline: its lines keep the card's line height */
+  @media (min-width: 800px) { .row .title { font-size: var(--step-0); line-height: 1.375; } }
+  .grid .title { margin-top: 10px; font-size: var(--step-0); line-height: 1.25; }
+</style>

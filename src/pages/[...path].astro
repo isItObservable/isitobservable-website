@@ -1,0 +1,113 @@
+---
+// Every content URL in one route: /<category>/<sub>/<slug> articles, /<slug> pages, /<category> listings.
+import { getEntry, render } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+import { Image } from 'astro:assets';
+import Base from '~/layouts/Base.astro';
+import Hero from '~/components/Hero.astro';
+import Author from '~/components/Author.astro';
+import Sidebar from '~/components/Sidebar.astro';
+import EpisodeLinks from '~/components/EpisodeLinks.astro';
+import ShareIcons from '~/components/ShareIcons.astro';
+import Prose from '~/components/Prose.astro';
+import ArticleRow from '~/components/ArticleRow.astro';
+import Listing from '~/components/Listing.astro';
+import YouTubeTeaser from '~/components/YouTubeTeaser.astro';
+import { categoryId, categoryTitle, getArticles, getCategories, getPages, imageFile, readingTime, type Article, type Category, type Page } from '~/lib/content';
+import { SITE_URL } from '~/lib/site';
+import { metaDescription } from '~/lib/seo';
+
+type Props = { article: Article } | { page: Page } | { category: Category };
+
+export const getStaticPaths = (async () => [
+  ...(await getArticles()).map((article) => ({ params: { path: article.id }, props: { article } })),
+  ...(await getPages()).map((page) => ({ params: { path: page.id }, props: { page } })),
+  ...(await getCategories()).map((category) => ({ params: { path: category.id }, props: { category } })),
+]) satisfies GetStaticPaths;
+
+const props = Astro.props as Props;
+const entry = 'article' in props ? props.article : 'page' in props ? props.page : undefined;
+const rendered = entry && (await render(entry));
+const topics = entry ? await Promise.all(entry.data.topics.map(async (t) => (await getEntry(t))!.data)) : [];
+
+// Category listing: own entries plus those of child categories; level-1 pages filter by their children.
+let listing: { entries: (Article | Page)[]; children: Category[] } | undefined;
+if ('category' in props) {
+  const id = props.category.id;
+  const inCategory = (e: Article | Page) => { const c = categoryId(e); return c === id || c?.startsWith(`${id}/`); };
+  const entries = [...(await getArticles()), ...(await getPages())].filter(inCategory).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+  listing = { entries, children: (await getCategories()).filter((c) => c.data.parent?.id === id) };
+}
+
+const article = 'article' in props ? props.article : undefined;
+const author = article && (await getEntry(article.data.author))!.data;
+const label = entry && (await categoryTitle(categoryId(entry)));
+const related = article ? await Promise.all(article.data.related.map(async (r) => (await getEntry(r))!)) : [];
+const latest = article ? (await getArticles()).slice(0, 5) : [];
+const heroImage = article?.data.image && imageFile(article.data.image.src);
+---
+{'category' in props && listing ? (
+  <Base title={props.category.data.seo?.title ?? props.category.data.title} description={await metaDescription(props.category.data)} robots={props.category.data.seo?.robots} stickyHeader={false}>
+    <Listing title={props.category.data.title} subline={props.category.data.subline} entries={listing.entries} categories={listing.children} />
+  </Base>
+) : entry && rendered && (
+  <Base
+    title={entry.data.seo?.title ?? entry.data.title}
+    description={await metaDescription(entry.data)}
+    image={heroImage}
+    robots={entry.data.seo?.robots}
+    jsonLd={entry.data.jsonLd}
+  >
+    <Hero label={label} headline={entry.data.headline ?? entry.data.title} subline={entry.data.subline} back={article && `/${categoryId(article)}`} />
+
+    {article && author ? (
+      <>
+      <div class="container author-wrap">
+        <Author name={author.name} image={author.image} date={article.data.date} readingTime={readingTime(article.body ?? '')} />
+      </div>
+      <div class="container mobile-only">
+        <div class="mobile-sidebar"><Sidebar headings={rendered.headings} topics={topics} youtube={article.data.youtube} goDeeper={article.data.goDeeper} desktop={false} /></div>
+      </div>
+      <hr class="mobile-only mobile-rule" />
+      <div class="container layout">
+        <div class="content">
+          {heroImage && article.data.youtube && (
+            <YouTubeTeaser href={article.data.youtube}><Image src={heroImage} alt={article.data.image!.title} widths={[800, 1200, 1600]} sizes="(min-width: 800px) 66vw, 100vw" loading="eager" /></YouTubeTeaser>
+          )}
+          <Prose><rendered.Content /></Prose>
+        </div>
+        <aside class="aside"><Sidebar headings={rendered.headings} topics={topics} youtube={article.data.youtube} goDeeper={article.data.goDeeper} desktop={true} /></aside>
+        <div class="share"><ShareIcons url={`${SITE_URL}/${article.id}`} /></div>
+      </div>
+      <hr class="mobile-only rule" />
+      <div class="container mobile-only"><EpisodeLinks youtube={article.data.youtube} goDeeper={article.data.goDeeper} /></div>
+      {related.length > 0 && <><hr class="rule" /><div class="row-wrap"><ArticleRow title="Related Articles" entries={related} /></div></>}
+      <hr class="rule" />
+      <div class="row-wrap"><ArticleRow title="Explore Engineering Topics" entries={latest} /></div>
+      </>
+    ) : (
+      <div class="container page"><Prose><rendered.Content /></Prose></div>
+    )}
+  </Base>
+)}
+
+<style>
+  .author-wrap { margin-top: 2.25rem; }
+  @media (min-width: 800px) { .author-wrap { margin-top: 3rem; } .mobile-only { display: none; } .page { padding-top: 1rem; } } /* padding: the first heading keeps its own margin */
+  .mobile-sidebar { margin-top: 2.25rem; }
+  .mobile-rule { margin: 2.5rem 0 0.5rem; }
+  .layout { display: flex; flex-direction: column; }
+  @media (min-width: 800px) {
+    .layout { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2rem; margin-top: 1rem; }
+    .content { grid-column: 1 / span 8; width: calc(100% + 4px); } /* the old column was 4px wider; same width keeps the same line breaks */
+    .aside { grid-column: 10 / span 3; }
+    .share { grid-column: 1 / -1; }
+  }
+  .aside { display: none; }
+  @media (min-width: 800px) { .aside { display: block; } }
+  .content > :global(.teaser) { margin-top: 2.5rem; }
+  .rule { margin-top: 2.5rem; }
+  .mobile-only.rule { margin-bottom: 2.5rem; }
+  .row-wrap { margin-top: 2.5rem; }
+  @media (min-width: 800px) { .row-wrap { margin-top: 72px; } }
+</style>

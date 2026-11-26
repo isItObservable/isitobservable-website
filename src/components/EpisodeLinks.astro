@@ -1,0 +1,34 @@
+---
+import ArrowRight from '~/icons/arrow-right-blue.svg';
+
+interface Props { youtube?: string; goDeeper: { text: string; url: string }[] }
+const { youtube, goDeeper } = Astro.props;
+---
+{youtube && (
+  <div class="episode">
+    <p><strong>Watch Episode</strong></p>
+    <p class="text">Let's watch the whole episode on our YouTube channel.</p>
+    <a class="watch" href={youtube} target="_blank" rel="noopener">Watch on YouTube</a>
+  </div>
+)}
+{goDeeper.length > 0 && (
+  <>
+  <p class="title">Go Deeper</p>
+  <ul class="deeper">
+    {goDeeper.map((link) => <li><a href={link.url} target="_blank" rel="noopener"><span>{link.text}</span><ArrowRight aria-hidden="true" /></a></li>)}
+  </ul>
+  </>
+)}
+
+<style>
+  .episode { margin-top: 2rem; padding: 1.5rem; border-radius: 0.25rem; background: var(--gradient); color: var(--white); }
+  .episode p { margin: 0; }
+  .episode .text { margin-top: 0.75rem; font-size: var(--step-m1); }
+  .watch { display: inline-block; margin-top: 1rem; padding: 0.5rem 1.5rem; border-radius: 0.25rem; background: var(--white); color: var(--black); font-size: var(--step-m1); }
+  .title { font-size: var(--step-m2); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; opacity: 0.5; }
+  .deeper { display: flex; flex-direction: column; margin-top: 0.5rem; list-style: none; line-height: 1.5; }
+  .deeper li { margin: 0; }
+  .deeper a { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; min-height: 1.5rem; padding-top: 0.5rem; color: var(--primary); font-size: var(--step-m1); }
+  .deeper :global(svg) { flex: none; transition: transform 0.2s; }
+  .deeper a:hover :global(svg) { transform: translateX(0.25rem); }
+</style>

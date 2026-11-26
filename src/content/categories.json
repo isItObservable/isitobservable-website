@@ -1,0 +1,78 @@
+[
+  {
+    "id": "site-reliability-engineering",
+    "craftId": 510,
+    "title": "Site Reliability Engineering",
+    "slug": "site-reliability-engineering",
+    "seo": {
+      "description": "See all SRE tutorials. Each episode covers a specific Sitre Reliability Engineering topic. Let's explore if your technology is observable!"
+    }
+  },
+  {
+    "id": "observability",
+    "craftId": 4,
+    "title": "Observability",
+    "slug": "observability",
+    "seo": {
+      "description": "See all Observability tutorials. Each episode covers a specific Observability technology or framework. Let's explore if your technology is observable!"
+    }
+  },
+  {
+    "id": "observability/kubernetes",
+    "craftId": 466,
+    "title": "Kubernetes",
+    "slug": "kubernetes",
+    "parent": "observability",
+    "seo": {
+      "description": "See all Kubernetes tutorials. Each episode covers a specific Kubernetes topic. Let's explore if your technology is observable!"
+    }
+  },
+  {
+    "id": "observability/prometheus",
+    "craftId": 5414,
+    "title": "Prometheus",
+    "slug": "prometheus",
+    "parent": "observability",
+    "seo": {
+      "description": "See all Prometheus tutorials. Each episode covers a specific Prometheus topic. Let's explore if your technology is observable!"
+    }
+  },
+  {
+    "id": "observability/service-mesh",
+    "craftId": 5418,
+    "title": "Service mesh",
+    "slug": "service-mesh",
+    "parent": "observability",
+    "seo": {
+      "description": "See all service mesh tutorials. Each episode covers a specific service mesh topic. Let's explore if your technology is observable!"
+    }
+  },
+  {
+    "id": "open-telemetry",
+    "craftId": 649,
+    "title": "OpenTelemetry",
+    "slug": "open-telemetry",
+    "seo": {
+      "description": "See all OpenTelemetry tutorials. Each episode covers a specific OpenTelemetry technology or framework. Let's explore if your technology is observable!"
+    }
+  },
+  {
+    "id": "open-telemetry/traces",
+    "craftId": 2719,
+    "title": "Traces",
+    "slug": "traces",
+    "parent": "open-telemetry",
+    "seo": {
+      "description": "See all tutorials on traces. Each episode covers a specific technology or framework related to OpenTelemetry traces. Let's explore if your technology is observable!"
+    }
+  },
+  {
+    "id": "events",
+    "craftId": 242963,
+    "title": "Events",
+    "slug": "events",
+    "seo": {
+      "description": "See what's going on with Is It Observable - learn more about events."
+    }
+  }
+]

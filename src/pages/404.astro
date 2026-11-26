@@ -1,0 +1,22 @@
+---
+import Base from '~/layouts/Base.astro';
+---
+<Base title="404" robots="none">
+  <!-- Old links with a trailing slash (/about/): static hosting has no page there, so forward to the URL without it. -->
+  <script is:inline>
+    if (location.pathname.length > 1 && location.pathname.endsWith('/')) location.replace(location.pathname.replace(/\/+$/, '') + location.search + location.hash);
+  </script>
+  <div class="container">
+    <h2>404</h2>
+    <p>The page you tried to access does not exist.<br /><a href="/">Back to home</a></p>
+  </div>
+</Base>
+
+<style>
+  .container { margin-top: 2.5rem; }
+  @media (min-width: 800px) { .container { margin-top: 72px; } }
+  h2 { margin-bottom: 1rem; }
+  @media (min-width: 800px) { h2 { margin-bottom: 2rem; } }
+  p { margin-top: 0; }
+  a { color: var(--primary); text-decoration: underline; }
+</style>

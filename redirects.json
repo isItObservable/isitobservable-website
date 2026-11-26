@@ -1,0 +1,14 @@
+[
+  {
+    "src": "/observable-lightning-talks-feb-2025-2",
+    "dest": "/observable-lightning-talks-june-2025"
+  },
+  {
+    "src": "/observable-lightning-talks-june-2025-2",
+    "dest": "/observable-lightning-talks-sept-2025"
+  },
+  {
+    "src": "/observable-lightning-talks-sept-2025",
+    "dest": "/observable-lightning-talks-dec-2025"
+  }
+]

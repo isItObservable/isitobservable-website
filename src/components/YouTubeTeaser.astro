@@ -1,0 +1,18 @@
+---
+// Image with the YouTube play button on top, linking out. No embed: no third-party iframe before cookie consent.
+import { Image } from 'astro:assets';
+import play from '~/assets/ui/youtube-play.png';
+
+interface Props { href: string }
+const { href } = Astro.props;
+---
+<a class="teaser" href={href} target="_blank" rel="noopener">
+  <Image class="play" src={play} alt="YouTube Play Icon" />
+  <slot />
+</a>
+
+<style>
+  .teaser { position: relative; display: block; cursor: pointer; }
+  .teaser :global(img:not(.play)) { width: 100%; }
+  .play { position: absolute; top: 50%; left: 50%; z-index: 1; width: auto; transform: translate(-50%, -50%); }
+</style>

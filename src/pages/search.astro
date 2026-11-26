@@ -1,0 +1,12 @@
+---
+// /search?q=… : all entries are rendered, the client keeps the Pagefind matches in score order (~/scripts/listing.ts).
+import Base from '~/layouts/Base.astro';
+import Listing from '~/components/Listing.astro';
+import { getArticles, getCategories, getPages } from '~/lib/content';
+
+const entries = [...(await getArticles()), ...(await getPages())];
+const subcategories = (await getCategories()).filter((c) => c.data.parent); // filter by subcategory
+---
+<Base title="Search" description="Search Is It Observable and explore technologies." siteNameFirst stickyHeader={false}>
+  <Listing title="Search" entries={entries} categories={subcategories} search />
+</Base>

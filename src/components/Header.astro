@@ -1,0 +1,140 @@
+---
+// Logo, main navigation (categories open a dropdown with their children), search field, "Subscribe on YouTube".
+// Desktop from 1066px; below that a full-screen menu. Behaviour in ~/scripts/header.ts.
+import Logo from '~/icons/logo-isitobservable.svg';
+import ChevronDark from '~/icons/chevron-down-dark.svg';
+import Search from '~/icons/search-dark.svg';
+import Close from '~/icons/close-dark.svg';
+import Burger from '~/icons/nav-burger-dark.svg';
+import YoutubeWhite from '~/icons/youtube-white.svg';
+import Social from './Social.astro';
+import { getCategories } from '~/lib/content';
+import { NAV, YOUTUBE_CHANNEL_URL } from '~/lib/site';
+
+interface Props { sticky: boolean }
+const { sticky } = Astro.props;
+
+const categories = await getCategories();
+const items = NAV.map((item) => ('category' in item
+  ? { ...item, href: `/${item.category}`, children: categories.filter((c) => c.data.parent?.id === item.category).map((c) => ({ title: c.data.title, href: `/${c.id}` })) }
+  : { ...item, children: undefined }));
+// Active when one of the last two URL segments is the item's slug: on /observability and /observability/kubernetes, not on articles.
+const segments = Astro.url.pathname.split('/').filter(Boolean).slice(-2);
+const isActive = (href: string) => segments.includes(href.split('/').pop()!);
+---
+<header class:list={['header', { sticky }]} data-header>
+  <nav aria-label="Main Navigation">
+    <div class="bar">
+      <div class="start">
+        <a class="logo" href="/"><Logo aria-label="Logo Is It Observable" role="img" /></a>
+        <ul class="desktop">
+          {items.map((item) => (
+            <li>
+              {item.children ? (
+                <button class:list={['item', { active: isActive(item.href) }]} aria-expanded="false" data-dropdown>
+                  {item.title}<ChevronDark class="chevron" aria-hidden="true" />
+                </button>
+                <ul class="dropdown" hidden>
+                  {item.children.map((child) => <li><a class:list={{ active: isActive(child.href) }} href={child.href}>{child.title}</a></li>)}
+                  <li><a href={item.href}>Show all articles</a></li>
+                </ul>
+              ) : (
+                <a class:list={['item', { active: isActive(item.href) }]} href={item.href}>{item.title}</a>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div class="end">
+        <form class="search" action="/search" role="search" data-search>
+          <input name="q" type="search" placeholder="Search Topic" aria-label="Search Topic" />
+          <button class="open" type="button" aria-label="Open search" data-search-open><Search aria-hidden="true" /></button>
+          <button class="close" type="button" aria-label="Close search" data-search-close><Close aria-hidden="true" /></button>
+        </form>
+        <button class="burger" aria-label="Open navigation" aria-expanded="false" aria-controls="mobile-nav" data-burger>
+          <Burger class="icon-open" aria-hidden="true" /><Close class="icon-close" aria-hidden="true" />
+        </button>
+        <a class="subscribe" href={YOUTUBE_CHANNEL_URL} target="_blank" rel="noopener">Subscribe<span class="visually-hidden"> on</span><YoutubeWhite aria-label="YouTube" role="img" /></a>
+      </div>
+    </div>
+
+    <div class="mobile container" id="mobile-nav" hidden data-mobile-nav>
+      <ul>
+        {items.map((item) => (
+          <li>
+            {item.children ? (
+              <button class="item" aria-expanded="false" data-dropdown>{item.title}<ChevronDark class="chevron" aria-hidden="true" /></button>
+              <ul class="sub" hidden>
+                {item.children.map((child) => <li><a href={child.href}>{child.title}</a></li>)}
+                <li><a href={item.href}>Show all articles</a></li>
+              </ul>
+            ) : (
+              <a class="item" href={item.href}>{item.title}</a>
+            )}
+          </li>
+        ))}
+      </ul>
+      <a class="subscribe mobile-subscribe" href={YOUTUBE_CHANNEL_URL} target="_blank" rel="noopener">Subscribe on<YoutubeWhite aria-label="YouTube" role="img" /></a>
+      <div class="mobile-social"><Social variant="blue" /></div>
+    </div>
+  </nav>
+</header>
+
+<script>
+  import '~/scripts/header.ts';
+</script>
+
+<style>
+  .header { position: relative; z-index: 30; background: var(--white); font-weight: 500; }
+  @media (min-width: 1066px) { .header.sticky { position: sticky; top: 0; } }
+  .bar { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; box-shadow: var(--shadow); }
+  @media (min-width: 1066px) { .bar { padding-block: 1rem; } }
+  .start, .end { display: flex; align-items: center; }
+  .end { flex: 1; justify-content: flex-end; min-width: 0; margin-left: 1rem; }
+  .logo :global(svg) { height: 2.25rem; width: auto; }
+  @media (min-width: 800px) { .logo :global(svg) { height: auto; } }
+
+  .desktop { display: none; list-style: none; margin: 0 0 0 1.5rem; height: 2.5rem; gap: 1rem; }
+  @media (min-width: 1066px) { .desktop { display: flex; } }
+  @media (min-width: 1200px) { .desktop { margin-left: 3.5rem; gap: 2rem; } }
+  .desktop > li { position: relative; display: flex; align-self: center; margin: 0; font-size: var(--step-m1); }
+  .item { display: flex; align-items: center; font-weight: 500; cursor: pointer; }
+  .item:hover, .item.active, .dropdown a:hover, .dropdown a.active, .sub a:hover { color: var(--primary); }
+  .chevron { width: 1.5rem; height: 1.5rem; transition: transform 0.2s; }
+  .item[aria-expanded='true'] .chevron { transform: rotate(180deg); }
+  .item:hover .chevron :global(path[stroke]), .item.active .chevron :global(path[stroke]) { stroke: var(--primary); }
+  .dropdown { position: absolute; top: 2.5rem; left: 50%; z-index: 10; width: 250px; margin: 0 0 0 -0.75rem; padding: 2rem 1.5rem; transform: translateX(-50%); list-style: none; background: var(--white); box-shadow: var(--shadow); border-radius: 0.25rem; }
+  .dropdown li, .sub li { margin: 0 0 0.75rem; font-size: var(--step-m1); }
+  .dropdown li:last-child, .sub li:last-child { margin-bottom: 0; }
+
+  /* Search: collapsed to the icon, expands into a field that takes the free space */
+  .search { position: relative; display: flex; align-items: center; width: 1.5rem; height: 2.5rem; padding-block: 0.5rem; border-radius: 0.25rem; }
+  @media (min-width: 1066px) { .search { width: 36px; } }
+  .search input { display: none; width: 100%; height: 100%; padding-top: 0.125rem; outline: none; background: var(--light-gray); font-size: var(--step-m1); }
+  .search input::-webkit-search-cancel-button { display: none; }
+  .search button { position: absolute; top: 50%; transform: translateY(-50%); display: flex; }
+  .search .close { display: none; right: 0.75rem; }
+  .search.is-open { flex: 1; width: auto; padding-inline: 3rem; background: var(--light-gray); }
+  @media (min-width: 1066px) { .search.is-open { max-width: 304px; } }
+  @media (max-width: 1065px) { .bar:has(.search.is-open) .start { display: none; } .bar:has(.search.is-open) .end { margin-left: 0; } } /* small screens: the field takes the bar */
+  .search.is-open input, .search.is-open .close { display: block; }
+  .search.is-open .open { left: 0.75rem; }
+
+  .burger { display: flex; width: 1.5rem; margin-left: 1rem; }
+  .burger .icon-close, .burger[aria-expanded='true'] .icon-open { display: none; }
+  .burger[aria-expanded='true'] .icon-close { display: block; }
+  @media (min-width: 1066px) { .burger { display: none; } }
+
+  .subscribe { display: none; align-items: center; justify-content: space-between; width: 157px; margin-left: 0.75rem; padding: 0.5rem 1rem; border-radius: 0.25rem; background: var(--primary); color: var(--white); font-size: var(--step-m1); white-space: nowrap; }
+  .subscribe:hover { background: var(--primary-700); }
+  @media (min-width: 1066px) { .subscribe { display: flex; } }
+
+  .mobile { height: 100vh; padding-top: 2rem; overflow-y: auto; }
+  .mobile > ul { list-style: none; margin: 0; }
+  .mobile > ul > li { margin: 0 0 1.5rem; }
+  .mobile .item { width: 100%; justify-content: space-between; }
+  .sub { list-style: none; margin: 1.75rem 0 1rem 1.25rem; }
+  .mobile-subscribe { display: inline-flex; gap: 0.5rem; width: auto; margin: 2.25rem 0 0; }
+  .mobile-social { margin-top: 2rem; }
+  @media (min-width: 1066px) { .mobile { display: none; } }
+</style>
