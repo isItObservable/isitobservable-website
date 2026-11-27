@@ -1,0 +1,216 @@
+---
+title: "How do you get started with Tracetest?"
+slug: how-do-you-get-started-with-tracetest
+category: otel
+tags: [opentelemetry, testing, observability, kubernetes, traces]
+youtubeId: xj7tS2owRvk
+publishDate: 2022-09-20
+thumbnail: ../../assets/images/tracetest.png
+description: "Building testing scenarios based on OpenTelemetry Traces."
+---
+
+Building technical tests has always been a challenge for many reasons. One of those challenges is knowing what tests are needed to get decent coverage. When building a new service, we can easily imagine building tests on each main service of our microservices.
+
+But does this make us sure to cover enough risks? And what about existing applications in production?
+
+One option would be to analyze our application by looking at the technical documentation, logs, database records, and [observability](https://www.dynatrace.com/news/blog/what-is-observability-2/) solution to understand which services are used by our users and what is critical to our business. But this can take a lot of time, effort, and money.
+
+The good news is that we now have a stable standard for traces that could help us resolve our challenge: [OpenTelemetry](https://www.dynatrace.com/news/blog/what-is-opentelemetry-2/). OpenTelemetry has the advantage of producing detailed traces of the actual flow of a given transaction within our architecture. Analyzing those traces can help us improve our testing strategy.
+
+If, for example, you’d like to run tests to test performance, you could try grouping traces to identify the main flow of spans produced in a given time. This can help me retrieve the most representative user journey to help me design suitable test cases.
+
+Ideally, you’d produce a Sankey graph out of OpenTelemetry measurements, for example:
+
+![Sankey graph out of OpenTelemetry measurements](~/assets/images/How-Do-You-Use-a-Sankey-Diagram-in-Marketing.jpg)
+
+With metrics collected from the architecture of the ingress or service mesh, I can get the suitable throughput I'll need to apply to run a realistic test.
+
+So, distributed traces, metrics, and logs are a great source of data to improve our testing strategy. To learn more about OpenTelemetry, review our previous blog posts on how to get started, [instrument your code](/open-telemetry/traces/how-to-instrument-your-code-using-opentelemetry), and [more](/open-telemetry).
+
+When instrumenting your application with OpenTelemetry, you'll define at a particular stage the sampling decision. This defines the quantity of data produced and stored in your observability solution.
+
+OpenTelemetry provides a couple of samplers defined at the code level in your instrumentation library:
+
+- AlwaysOn -> 100% sent
+
+- AlwaysOff-> nothing sent
+
+- ParentBased -> if the span has a trace ID, it should be sampled. This is perfect when applied to backend services
+
+- TraceIDRatioBased → to define a percentage of spans to sample
+
+There is also the option to define the [sampling](https://engineering.dynatrace.com/blog/partial-trace-sampling-a-new-approach-to-distributed-trace-sampling/) decision in the OpenTelemetry collector with two processors: Head-based sampling and Tail-based sampling.
+
+The head-based processor samples a trace at the beginning of the funnel. It’s the most common one, but it has the limitation that you don’t know at the beginning of the trace if it goes into an error.
+
+Tail-based sampling is the opposite: you wait until the end of the trace to decide whether to sample it or not. This could be an interesting sample to focus on slow transactions or errors.
+
+When we're in dev or testing, we want to have as many details as possible to test and troubleshoot quickly in case of an issue. Therefore, we should set our sampling decisions to AlwaysOn. In production, we would need to find the right sampling decision to give us the right level of detail for the correct cost (storing data).
+
+Traces can be a great source to build your testing strategy. That’s why Kubeshop created [Tracetest](https://tracetest.io/), which will be the main focus of today’s blog post and YouTube video.
+
+After this long introduction, we will:
+
+- Introduce Tracetest
+
+- Learn how to deploy it
+
+- Look at a test definition file
+
+- Show the value of Tracetest
+
+- And run through a tutorial
+
+On the YouTube video, I also had the opportunity to talk to Ken Hamric, who is the founder of Tracetest. Please watch the full video if you want to hear more about this tool directly from the source.
+
+## What is Tracetest?
+
+Tracetest is a tool that relies on traces to build a test case.
+
+Therefore, starting with Tracetest requires installing Tracetest in your environment and connecting to a supported observability solution. Tracetest currently supports various solutions: Jaeger, Tempo, OpenSearch, and SignalFx.
+
+In the future, Tracetest should receive spans directly from the OpenTelemetry Collector. It will provide a processor and exporter. The Tracetest processor filters out all spans except the ones generated by the Tracetest. The exporter sends the Tracetest span to Tracetest. This means we could create a dedicated collector pipeline for Tracetest without impacting or generating noise in our Observability backend.
+
+The connection with your tracing backend is crucial to allow Tracetest to retrieve the spans related to a given test. Tracetest supports the HTTP and GRPC protocols.
+
+To build a test case, you'll need to generate a trace by running a test against your application
+
+For now, we can generate traffic using:
+
+- HTTP request
+
+- RPC request
+
+- Postman collection
+
+- OpenAI specification (coming soon)
+
+Once the traffic is sent, Tracetest will retrieve the produced trace from the generated traffic. With the help of the generated traces, Tracetest allows you to select the spans from your traces using a selector based on trace attributes. You can then select a given span and create assertions. Once you have built the right set of assertions, you have a test case ready.
+
+Tracetest also comes with a Command Line tool connecting to your Tracetest server. It helps you list the current tests and run specific tests.
+
+Tracetest also has an API allowing you to create tests, run tests, and collect results.
+
+## How to deploy Tracetest
+
+Tracetest provides a helm chart to install all the required components: the Tracetest server that provides the UI, API, and all the features required to build and run tests
+
+Tracetest is composed of:
+
+- An application container with the web UI, the OpenTeletmetry trace ingest API and the API layer
+
+- The PostgreSQL database
+
+- A configmap with all the Tracetest settings (the type of telemetry exporter, the database connection, etc.)
+
+- The ingress rule (if enabled) to expose the Tracetest UI
+
+If you don’t want to use HELM, Tracetest also provides setup.sh scripts that will deploy the various components.
+
+Last, the Tracetest CI also install be installed in various ways:
+
+- Apt
+
+- Yum for Linux
+
+- HomeBrew For Mac
+
+- Executable for Windows
+
+In the future, Tracetest will be deployable in your environment via the CLI.
+ 
+
+## The test definition file
+
+Building all your tests from the UI is usually more straightforward, but sometimes you also want to have the code version of the test to store your test close to the release code.
+
+Tracetest includes a test definition file that can be generated with your preferred text editor.
+
+A test definition file has three main parts:
+
+- Test information
+
+- Transaction trigger
+
+- Assertions
+
+The test information is currently limited to the test name.
+
+The trigger defines how to send the actual traffic in HTTP and RPC. The list of assertions defines what you’d like to apply to the generated trace to validate your test.
+
+To create an assertion, you need to specify the selector filtering on the span attributes of the trace. The selector shows where a given check is applied to the trace. Assertions create a condition based on the information available on the span attributes.
+
+For example:
+
+I would like to validate that a given span has an HTTP response code = 200. So, I'll create the following rule:
+
+```yaml
+name: Test adding products
+trigger:
+  type: http
+  httpRequest:
+    url: http://onlineboutique/cart
+    method: POST
+    headers:
+      - key: Content-Type
+        value: application/json
+    body: '{ "id": 52, quantity: 3 }'
+testDefinition:
+  - selector: span[name = "POST /cart"]
+    assertions:
+      - http.status_code = 200
+```
+
+In this example, we specify that we want to send an HTTP post request to /cart, allowing us to add a product to the cart of the online boutique.
+
+The selector helps us to filter the span generated on the frontend service. There you want to ensure that the HTTP response code equals 200.
+
+You can create complex rules if you define standards on the span attributes generated in your application on top of the [semantic conventions](https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/) of OpenTelemetry.
+
+The test result can be viewed in the UI, but the Tracetest server also provides an API that helps you generate a JUnit report of the whole test or a JSON payload with the result of a specific test. You can also retrieve this from the Tracetest CLI.
+
+## The value of Tracetest
+
+The beauty of using a tool like Tracetest is that it brings testing into another dimension.
+
+When you build a test, we make an action and validate its output. A service sends the request, and we check that the response's content is aligned with our requirements.
+
+If we test a WebUI, we interact with the webpage and check if the response is correct. However, there is no way of validating that all the components involved in our transaction are working as expected.
+
+With a Tracetest, we can send a request and check the entire chain of calls. We could now build a test validating the response to our call - but that’s not all.
+
+Tracetest is a massive help for functional or non-functional tests. You can also build synthetic tests using Tracetest to validate that all your components are responding (by looking at the generated spans).
+
+Another advantage is related to observability. When you deploy an observability solution, you produce measurements, process our measurements, and then push them to our observability.
+
+But how can we validate that our measurements are good enough for production? Do we have all the details required to understand what is currently happening in our environment?
+
+Tracetest allows us to define a test case validating a baseline based on traces. We can then add this test to our CICD process to validate that the level of details is always as expected.
+
+I think that Tracetest is one of the first solutions relying on traces to build test cases. Still, I’m convinced that more and more testing solutions will start utilizing observability to increase the efficiency of tests.
+
+## Tutorial
+
+In this tutorial, we would create a test case using Tracetest. Here are the requirements to get started:
+
+- A [k8s cluster](https://kubernetes.io/)
+
+- The [Nginx](https://www.nginx.com/) ingress controller
+
+- The [Prometheus](https://prometheus.io/) stack
+
+- Tempo
+
+- The OpenTelemetry operator
+
+- A fully-instrumented version of the online boutique
+
+In this demo, we will try to build a test, make assertions on specific spans, and then create a test definition file.
+
+Follow the full tutorial on my YouTube channel: [https://youtu.be/xj7tS2owRvk](https://youtu.be/xj7tS2owRvk)
+
+Or directly on GitHub: [https://github.com/isItObserva...](https://github.com/isItObservable/TraceTest)
+
+## Go deeper
+
+- [View the tutorial on TraceTest on GitHub](https://github.com/isItObservable/TraceTest)
