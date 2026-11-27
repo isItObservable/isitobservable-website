@@ -1,0 +1,62 @@
+# ISI-7949 / architecture ISI-7919 §4C — OPTIONAL, Phase-3 nice-to-have, NOT a launch blocker.
+# Refresh the video library from the IsItObservable YouTube channel and open a PR with new/changed
+# *stubs* (scripts/sync-youtube.ts). Stubs are written `draft: true` — the written blog per video
+# stays editorial, so nothing publishes until an editor fleshes it out and flips the flag.
+#
+# Requires the YOUTUBE_API_KEY secret and either YOUTUBE_UPLOADS_PLAYLIST_ID or YOUTUBE_CHANNEL_ID
+# (repo variables). Disabled-by-default in practice: with no secret set, the scheduled run no-ops.
+name: sync-youtube
+on:
+  schedule:
+    - cron: '0 5 * * 1' # Mondays 05:00 UTC
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Report only, write no files and open no PR'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-youtube
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    # Skip the scheduled run entirely when the API key is not configured (keeps the Actions log clean).
+    if: github.event_name == 'workflow_dispatch' || vars.YOUTUBE_SYNC_ENABLED == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - id: sync
+        run: node scripts/sync-youtube.ts ${{ (github.event_name == 'workflow_dispatch' && inputs.dry_run) && '--dry-run' || '' }}
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          YOUTUBE_UPLOADS_PLAYLIST_ID: ${{ vars.YOUTUBE_UPLOADS_PLAYLIST_ID }}
+          YOUTUBE_CHANNEL_ID: ${{ vars.YOUTUBE_CHANNEL_ID }}
+          YOUTUBE_CATEGORY: ${{ vars.YOUTUBE_CATEGORY }}
+      - name: Open PR with the new stubs
+        if: steps.sync.outputs.created != '0' && !(github.event_name == 'workflow_dispatch' && inputs.dry_run)
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: content/youtube-sync
+          base: main
+          title: 'content: new YouTube video stubs'
+          commit-message: 'content(videos): sync new YouTube video stubs'
+          labels: videos, automated
+          delete-branch: true
+          body: |
+            Automated YouTube metadata sync (`sync-youtube.yml` → `scripts/sync-youtube.ts`).
+
+            New stubs (all `draft: true`): ${{ steps.sync.outputs.slugs }}
+
+            These are metadata stubs, not finished posts — flesh each into the written form of the
+            video and set `draft: false` before it publishes.

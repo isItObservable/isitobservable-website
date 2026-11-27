@@ -1,0 +1,67 @@
+# ISI-7949 / architecture ISI-7919 §4B — pull the weekly CloudNative News + OTel News the
+# generators produce, normalize each into a content file (scripts/ingest-news.ts), and open a PR.
+#
+# A news push never touches site code: this workflow only writes under src/content/*-news/ and
+# opens a PR for a 10-second human/CI review before it goes live (§4B recommendation). Enable
+# auto-merge on the repo to make that review a no-op on green CI.
+#
+# The *source* of the news (JSON API / RSS / markdown dir) is configured via NEWS_SOURCE_KIND +
+# the URL/dir vars below — the one open question from ISI-7919 §7 #1. The transform adapts; the
+# workflow shape does not change whatever the answer is.
+name: ingest-news
+on:
+  schedule:
+    - cron: '0 6 * * 1' # Mondays 06:00 UTC, after the weekly news is generated
+  repository_dispatch:
+    # The cloudnative-news / otel-news generators can POST one of these to ingest the moment they publish.
+    types: [cloudnative-news-published, otel-news-published, news-published]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Parse the source and report, but write no files and open no PR'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ingest-news
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - id: ingest
+        run: node scripts/ingest-news.ts ${{ (github.event_name == 'workflow_dispatch' && inputs.dry_run) && '--dry-run' || '' }}
+        env:
+          # Source adapter (ISI-7919 §7 #1). Set these as repository variables once the shape is confirmed.
+          NEWS_SOURCE_KIND: ${{ vars.NEWS_SOURCE_KIND || 'json' }}
+          CLOUDNATIVE_NEWS_URL: ${{ vars.CLOUDNATIVE_NEWS_URL }}
+          OTEL_NEWS_URL: ${{ vars.OTEL_NEWS_URL }}
+          CLOUDNATIVE_NEWS_CATEGORY: ${{ vars.CLOUDNATIVE_NEWS_CATEGORY }}
+          OTEL_NEWS_CATEGORY: ${{ vars.OTEL_NEWS_CATEGORY }}
+      - name: Open PR with the new issues
+        if: steps.ingest.outputs.created != '0' && !(github.event_name == 'workflow_dispatch' && inputs.dry_run)
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: content/news-ingest
+          base: main
+          title: 'content: weekly news ingest'
+          commit-message: 'content(news): ingest weekly CloudNative + OTel news'
+          labels: news, automated
+          delete-branch: true
+          body: |
+            Automated weekly news ingest (`ingest-news.yml` → `scripts/ingest-news.ts`).
+
+            New issues: ${{ steps.ingest.outputs.slugs }}
+
+            Review the cards render correctly, then merge. Enable auto-merge to land these on green CI.
