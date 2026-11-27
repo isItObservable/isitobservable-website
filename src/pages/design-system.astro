@@ -1,0 +1,153 @@
+---
+// ISI-7947 — Concept C "Broadcast × Observatory" empty themed shell.
+// Standalone (no Base layout / tracking): renders the design-system layer only —
+// tokens, the three typefaces, the watch=navy / read=white zone primitives —
+// with placeholder content. The visual cutover of the real site lands in ISI-7950.
+import '~/styles/global.css';
+
+const cats = [
+  { name: 'Kubernetes', token: 'var(--cat-k8s)' },
+  { name: 'OpenTelemetry', token: 'var(--cat-otel)' },
+  { name: 'Security', token: 'var(--cat-security)' },
+  { name: 'CloudNative News', token: 'var(--cat-cloudnative)' },
+  { name: 'OTel News', token: 'var(--cat-otelnews)' },
+];
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,minimum-scale=1,width=device-width" />
+    <meta name="robots" content="noindex" />
+    <title>Design system — Concept C · Is It Observable</title>
+  </head>
+  <body class="surface-read">
+    <!-- Light top nav (read zone): badge + pixel wordmark + links + LIVE pill + Subscribe -->
+    <nav class="nav">
+      <div class="lockup">
+        <span class="badge" aria-hidden="true">?</span>
+        <span class="wordmark">IsItObservable</span>
+        <span class="tagline">the blog of every video</span>
+      </div>
+      <div class="nav-links">
+        <a href="#">Videos</a><a href="#">Blogs</a><a href="#">News</a><a href="#">Newsletter</a>
+        <span class="live-pill">LIVE FRI 18:00</span>
+        <button class="subscribe">Subscribe</button>
+      </div>
+    </nav>
+
+    <main class="wrap">
+      <!-- Navy "screening room" — inset rounded block on the light page (watch zone) -->
+      <section class="screening-room hero">
+        <p class="eyebrow">UNDERSTAND · OBSERVE · DECIDE</p>
+        <h1 class="headline">Featured episode — cinematic hero</h1>
+        <div class="hero-meta">
+          <span class="tag" style="--tag: var(--cat-otel)">OpenTelemetry</span>
+          <span class="ep">EP. 000</span>
+        </div>
+        <div class="cta-row">
+          <button class="cta-primary">▶ Watch</button>
+          <button class="cta-ghost">📖 Read the blog</button>
+        </div>
+      </section>
+
+      <!-- Category accents — neon is category coding only, never a large surface -->
+      <section class="swatches" aria-label="Category colors">
+        {cats.map((c) => (
+          <div class="swatch"><span class="chip" style={`background: ${c.token}`}></span><span>{c.name}</span></div>
+        ))}
+      </section>
+
+      <!-- White editorial zone (read): Latest + Newsroom + newsletter -->
+      <section class="editorial">
+        <h2 class="rail-title">Latest blogs</h2>
+        <div class="cards">
+          <div class="card"><div class="thumb" style="background: linear-gradient(135deg, var(--navy-700), var(--navy))"></div><p>Blog title placeholder</p><span class="card-meta">▶ Watch · 📖 Read</span></div>
+          <div class="card"><div class="thumb" style="background: linear-gradient(135deg, var(--navy-600), var(--navy-900))"></div><p>Blog title placeholder</p><span class="card-meta">▶ Watch · 📖 Read</span></div>
+        </div>
+
+        <div class="newsroom">
+          <div>
+            <h3 class="rail-title" style="color: var(--cat-cloudnative)">CloudNative News</h3>
+            <p class="news-row">Edition #000 — headline placeholder</p>
+          </div>
+          <div>
+            <h3 class="rail-title" style="color: var(--cat-otelnews)">OpenTelemetry News</h3>
+            <p class="news-row">Edition #000 — headline placeholder</p>
+          </div>
+        </div>
+
+        <!-- Navy newsletter block on the light zone -->
+        <section class="newsletter">
+          <p class="eyebrow">WEEKLY · NO FLUFF</p>
+          <h2 class="newsletter-title">The Friday Briefing</h2>
+          <div class="newsletter-form"><input placeholder="you@example.com" /><button>Subscribe</button></div>
+        </section>
+      </section>
+    </main>
+
+    <footer class="footer surface-read">
+      <span class="wordmark small">IsItObservable</span>
+      <span>Design-system shell — ISI-7947 · Concept C</span>
+    </footer>
+  </body>
+</html>
+
+<style>
+  body { font-family: var(--font-body); }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 24px; display: grid; gap: 24px; }
+
+  .nav { position: sticky; top: 0; z-index: 40; display: flex; align-items: center; gap: 16px;
+         padding: 12px 24px; background: color-mix(in srgb, var(--white) 90%, transparent);
+         backdrop-filter: blur(8px); border-bottom: 1px solid rgba(3,43,68,.10); }
+  .lockup { display: flex; align-items: center; gap: 10px; }
+  .badge { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%;
+           background: var(--navy); color: var(--white); font-family: var(--font-head); font-weight: 700; }
+  .wordmark { font-family: var(--font-arcade); font-size: 10px; color: var(--navy); }
+  .wordmark.small { font-size: 8px; }
+  .tagline { font-size: 12px; color: rgba(3,43,68,.55); }
+  .nav-links { margin-left: auto; display: flex; align-items: center; gap: 20px; font-size: 14px; font-weight: 500; color: rgba(3,43,68,.70); }
+  .nav-links a:hover { color: var(--navy); }
+  .live-pill { background: #FF385C; color: #fff; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; }
+  .subscribe { background: var(--navy); color: var(--white); font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 8px; }
+  .subscribe:hover { background: var(--navy-600); }
+
+  .hero { padding: 48px; display: grid; gap: 16px; justify-items: start; }
+  .eyebrow { font-family: var(--font-arcade); font-size: 9px; color: rgba(255,255,255,.55); letter-spacing: 1px; }
+  .newsletter .eyebrow { color: rgba(255,255,255,.55); }
+  .headline { font-family: var(--font-head); font-size: clamp(28px, 5vw, 53px); color: var(--white); max-width: 20ch; }
+  .hero-meta { display: flex; align-items: center; gap: 12px; }
+  .tag { font-size: 12px; font-weight: 700; color: var(--ink); background: var(--tag); padding: 3px 10px; border-radius: 999px; }
+  .ep { font-family: var(--font-arcade); font-size: 9px; color: rgba(255,255,255,.7); }
+  .cta-row { display: flex; gap: 12px; margin-top: 8px; }
+  .cta-primary { background: var(--white); color: var(--navy); font-weight: 600; padding: 10px 20px; border-radius: 10px; }
+  .cta-ghost { border: 1px solid rgba(255,255,255,.25); color: var(--white); font-weight: 600; padding: 10px 20px; border-radius: 10px; }
+  .cta-ghost:hover { border-color: var(--cat-k8s); box-shadow: 0 0 24px -6px var(--cat-k8s); }
+
+  .swatches { display: flex; flex-wrap: wrap; gap: 12px; }
+  .swatch { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--navy);
+            background: var(--white); border: 1px solid rgba(3,43,68,.10); padding: 6px 12px; border-radius: 999px; }
+  .chip { width: 12px; height: 12px; border-radius: 4px; }
+
+  .editorial { display: grid; gap: 24px; }
+  .rail-title { font-family: var(--font-head); font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(3,43,68,.5); }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(264px, 1fr)); gap: 16px; }
+  .card { background: var(--white); border: 1px solid rgba(3,43,68,.10); border-radius: 20px; padding: 12px; display: grid; gap: 8px; }
+  .thumb { aspect-ratio: 16/9; border-radius: 14px; }
+  .card p { font-family: var(--font-head); font-weight: 600; color: var(--navy); }
+  .card-meta { font-size: 12px; color: rgba(3,43,68,.55); }
+
+  .newsroom { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; border-top: 2px solid var(--navy); padding-top: 24px; }
+  .news-row { font-size: 14px; color: rgba(3,43,68,.75); margin-top: 8px; }
+
+  .newsletter { background: linear-gradient(90deg, var(--navy), var(--navy-700)); border-radius: var(--radius-screen);
+                padding: 32px; display: grid; gap: 12px; justify-items: start; }
+  .newsletter-title { font-family: var(--font-head); color: var(--white); font-size: 24px; }
+  .newsletter-form { display: flex; gap: 8px; }
+  .newsletter-form input { padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); color: var(--white); }
+  .newsletter-form button { background: var(--cat-k8s); color: var(--navy); font-weight: 700; padding: 10px 18px; border-radius: 10px; }
+
+  .footer { display: flex; align-items: center; justify-content: space-between; padding: 24px; border-top: 1px solid rgba(3,43,68,.10); font-size: 12px; color: rgba(3,43,68,.55); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>

@@ -6,6 +6,12 @@
 @font-face { font-family: 'Inter'; src: url('../assets/fonts/Inter-Bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
 @font-face { font-family: 'SpaceGrotesk'; src: url('../assets/fonts/SpaceGrotesk-Regular.woff2') format('woff2'); font-weight: 300; font-style: normal; font-display: swap; }
 @font-face { font-family: 'SpaceGrotesk'; src: url('../assets/fonts/SpaceGrotesk-Bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+/* Press Start 2P (OFL, self-hosted per the no-CDN font policy) — the Concept C arcade pixel accent. */
+@font-face { font-family: 'PressStart2P'; src: url('../assets/fonts/PressStart2P-Regular-latin-ext.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'PressStart2P'; src: url('../assets/fonts/PressStart2P-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+/* Press Start 2P (OFL) — self-hosted pixel accent for Concept C (logo wordmark, eyebrows, episode #/durations). ACCENTS ONLY. */
+@font-face { font-family: 'Press Start 2P'; src: url('../assets/fonts/PressStart2P-Regular-latin-ext.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Press Start 2P'; src: url('../assets/fonts/PressStart2P-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 
 /* Design tokens. Breakpoints: 600, 800 (tablet), 1066 (desktop), 1200. */
 :root {
@@ -40,7 +46,10 @@
   --cat-cloudnative: #a3e635; /* CloudNative News · lime */
   --cat-otelnews: #fbbf24;    /* OTel News · amber */
   --cat-security: #4ade80;    /* Security · green */
-  --arcade: 'PressStart2P', var(--mono); /* pixel accent (logo/eyebrows/numbers). Needs src/assets/fonts/PressStart2P.woff2 (self-hosted, follow-up). */
+  --font-body: var(--sans);          /* Inter — long-form reading (validated Concept C) */
+  --font-head: var(--serif);         /* Space Grotesk — H1–H4, UI titles, rail labels */
+  --font-arcade: 'Press Start 2P', var(--mono); /* pixel ACCENT ONLY: logo wordmark, eyebrows, episode #/durations */
+  --arcade: var(--font-arcade);      /* alias kept for the Concept C prototype classes (.arcade) */
   --radius-screen: 2rem;      /* signature rounded "screen" radius */
   --shadow-screen: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
 
