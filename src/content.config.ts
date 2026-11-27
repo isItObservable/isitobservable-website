@@ -1,6 +1,7 @@
 import { defineCollection, reference } from 'astro:content';
 import { file, glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { categoryIds } from '~/content/taxonomy';
 
 // The file path is the URL: articles/open-telemetry/traces/foo.md → /open-telemetry/traces/foo
 const idFromPath = ({ entry }: { entry: string }) => entry.replace(/\.md$/, '');
@@ -82,4 +83,85 @@ const authors = defineCollection({
   }),
 });
 
-export const collections = { articles, pages, categories, topics, authors };
+// === Concept C rebrand content model (ISI-7948, spec ISI-7919 §2). Additive: four new collections
+// for the Netflix-style hub, independent of the live Craft-replacement model above and of the
+// /api/blog.json contract. No craftId here — none of this came from Craft. ===
+
+// Shared front-matter shape. `category` is validated against the taxonomy (unknown values fail the
+// build). `thumbnail` uses Astro's image() helper (relative, co-located, optimized at build).
+const rebrandBase = ({ image }: { image: () => z.ZodType }) =>
+  z.object({
+    title: z.string(),
+    slug: z.string().optional(), // stable URL key; defaults to the file id when omitted
+    category: z.enum(categoryIds), // drives the neon tile color via taxonomy.ts
+    tags: z.array(z.string()).default([]),
+    youtubeId: z.string().optional(), // present on videos + past livestreams
+    publishDate: z.coerce.date(), // drives ordering in rails/feeds
+    updatedDate: z.coerce.date().optional(), // freshness signal
+    thumbnail: image().optional(), // card + OG image
+    description: z.string(), // one-paragraph summary for cards + meta/OG
+    draft: z.boolean().default(false), // excluded from the production build
+    featured: z.boolean().default(false), // surfaces in Home hero / first rail
+  });
+
+const videos = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: 'src/content/videos', generateId: idFromPath }),
+  schema: ({ image }) =>
+    rebrandBase({ image }).extend({
+      type: z.literal('video').default('video'),
+    }),
+});
+
+// Weekly news (both feeds). Machine-ingested (see ISI-7949), so the schema stays lean. `category`
+// and `type` are fixed per feed, so ingested files don't need to set them.
+const newsFields = z.object({
+  issueNumber: z.number().int().positive(),
+  sourceUrl: z.url(), // canonical generated source
+  sections: z.array(z.object({ title: z.string(), url: z.url().optional() })).optional(),
+});
+
+const cloudnativeNews = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: 'src/content/cloudnative-news', generateId: idFromPath }),
+  schema: ({ image }) =>
+    rebrandBase({ image })
+      .extend(newsFields.shape)
+      .extend({
+        type: z.literal('cloudnative-news').default('cloudnative-news'),
+        category: z.literal('cloudnative').default('cloudnative'),
+      }),
+});
+
+const otelNews = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: 'src/content/otel-news', generateId: idFromPath }),
+  schema: ({ image }) =>
+    rebrandBase({ image })
+      .extend(newsFields.shape)
+      .extend({
+        type: z.literal('otel-news').default('otel-news'),
+        category: z.literal('otelnews').default('otelnews'),
+      }),
+});
+
+const livestreams = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: 'src/content/livestreams', generateId: idFromPath }),
+  schema: ({ image }) =>
+    rebrandBase({ image }).extend({
+      type: z.literal('livestream').default('livestream'),
+      startsAt: z.coerce.date(), // timezone-aware; drives the "next live" home banner
+      status: z.enum(['scheduled', 'live', 'past']),
+      registrationUrl: z.url().optional(),
+      publishDate: z.coerce.date().optional(), // livestreams order by startsAt, so this is optional
+    }),
+});
+
+export const collections = {
+  articles,
+  pages,
+  categories,
+  topics,
+  authors,
+  videos,
+  'cloudnative-news': cloudnativeNews,
+  'otel-news': otelNews,
+  livestreams,
+};
