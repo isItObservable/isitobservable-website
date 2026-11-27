@@ -27,6 +27,23 @@
   --serif: SpaceGrotesk, sans-serif;
   --mono: Monaco, monospace;
 
+  /* === Concept C "Broadcast × Observatory" — rebrand design system (ISI-7918, locked ISI-7916 v3.3).
+     Additive: these tokens define the new brand surface + accents. Nothing uses them yet, so adding
+     them changes no pixel. The visual cutover from the --primary/--secondary brand lands in ISI-7950. */
+  --ink: #0b0f1c;             /* screening-room shell (darkest) */
+  --navy: #032b44;            /* brand navy — primary rebrand surface */
+  --navy-700: #0a3a5f;        /* navy mid (hero gradient stop) */
+  --navy-600: #0a4a73;        /* navy hover / link */
+  --navy-900: #071a2c;        /* navy deep (hero gradient stop) */
+  --cat-k8s: #22d3ee;         /* Kubernetes · cyan — semantic category coding only, never decorative */
+  --cat-otel: #e879f9;        /* OpenTelemetry · fuchsia */
+  --cat-cloudnative: #a3e635; /* CloudNative News · lime */
+  --cat-otelnews: #fbbf24;    /* OTel News · amber */
+  --cat-security: #4ade80;    /* Security · green */
+  --arcade: 'PressStart2P', var(--mono); /* pixel accent (logo/eyebrows/numbers). Needs src/assets/fonts/PressStart2P.woff2 (self-hosted, follow-up). */
+  --radius-screen: 2rem;      /* signature rounded "screen" radius */
+  --shadow-screen: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
+
   /* Type scale: small steps are fixed, larger ones grow fluidly from 320px to 1066px (16px × 1.1ⁿ → 18px × 1.2ⁿ). */
   --step-m4: 10.93px;
   --step-m3: 12.02px;
@@ -84,3 +101,9 @@ hr { border: 0; border-top: 1px solid var(--gray); }
 .label { font-size: var(--step-m2); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
 .button { display: inline-block; padding: 0.5rem 1.5rem; border-radius: 0.25rem; background: var(--primary); color: var(--white); }
 .button:hover { background: var(--primary-700); }
+
+/* Concept C surface primitives — the two coexisting surfaces ("watch=navy / read=white"). Opt in per section.
+   READ = light editorial (default page); WATCH / screening-room = the dark navy inset "screen". */
+.surface-read { background: var(--white); color: var(--navy); }
+.surface-watch { background: var(--ink); color: var(--white); }
+.screening-room { background: var(--ink); color: var(--white); border-radius: var(--radius-screen); box-shadow: var(--shadow-screen); }
